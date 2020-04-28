@@ -94,6 +94,8 @@
   font-size: 2.4rem;
   line-height: 1.27;
 
+  animation: fade-in-bottom-top 1s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+
   @media (min-width: $stop-scaling) {
     width: 509px;
     font-size: 24px;

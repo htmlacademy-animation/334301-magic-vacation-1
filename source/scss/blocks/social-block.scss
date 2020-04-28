@@ -18,6 +18,8 @@
   color: $c-dark;
   border-radius: 50%;
 
+  transition: color 0.3s ease-in-out;
+
   @media (max-width: $tablet) and (orientation: portrait) {
     display: none;
   }
@@ -35,6 +37,8 @@
     background-color: $c-light;
     border: 2px solid $c-light;
     z-index: -1;
+
+    transition: border-color 0.3s ease-in-out, transform 0.3s ease-in-out;
   }
 
   svg {
@@ -49,8 +53,7 @@
     color: $c-purple;
 
     &::before {
-      width: 112.5%;
-      height: 112.5%;
+      transform: translate(-50%,-50%) scale(1.125);
     }
   }
 
@@ -89,6 +92,8 @@
   margin-top: 1.5rem;
   opacity: 0;
   pointer-events: none;
+
+  transition: opacity 0.3s ease-in-out;
 
   @media (min-width: $stop-scaling) {
     margin-top: 15px;
@@ -168,6 +173,8 @@
   color: $c-light;
   border: 2px solid transparent;
   border-radius: 50%;
+
+  transition: color 0.3s ease-in-out, background-color 0.3s ease-in-out, border-color 0.3s ease-in-out;
 
   @media (min-width: $stop-scaling) {
     width: 40px;
