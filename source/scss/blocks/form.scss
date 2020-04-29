@@ -44,6 +44,8 @@
   border-radius: 3rem;
   outline: none;
 
+  animation: fade-in-right-left 1s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+
   &:focus {
     border: 1px solid $c-purple;
   }

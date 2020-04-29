@@ -1,5 +1,8 @@
 import throttle from 'lodash/throttle';
 
+const STORY_SCREEN_ID = 1;
+const PRIZES_SCREEN_ID = 2;
+
 export default class FullPageScroll {
   constructor() {
     this.THROTTLE_TIMEOUT = 2000;
@@ -8,6 +11,7 @@ export default class FullPageScroll {
     this.menuElements = document.querySelectorAll(`.page-header__menu .js-menu-link`);
 
     this.activeScreen = 0;
+    this.previousScreen = 0;
     this.onScrollHandler = this.onScroll.bind(this);
     this.onUrlHashChengedHandler = this.onUrlHashChenged.bind(this);
   }
@@ -41,12 +45,33 @@ export default class FullPageScroll {
   }
 
   changeVisibilityDisplay() {
-    this.screenElements.forEach((screen) => {
-      screen.classList.add(`screen--hidden`);
-      screen.classList.remove(`active`);
-    });
-    this.screenElements[this.activeScreen].classList.remove(`screen--hidden`);
-    this.screenElements[this.activeScreen].classList.add(`active`);
+    const previousScreen = Array.from(this.screenElements).findIndex((screen) => screen.classList.contains(`active`));
+
+    if (previousScreen === STORY_SCREEN_ID && this.activeScreen === PRIZES_SCREEN_ID) {
+      this.screenElements[previousScreen].querySelector(`.screen__background`).classList.add(`screen__background--scaled`);
+
+      setTimeout(() => {
+        this.screenElements.forEach((screen) => {
+          screen.classList.add(`screen--hidden`);
+          screen.classList.remove(`active`);
+        });
+
+        this.screenElements[this.activeScreen].classList.remove(`screen--hidden`);
+        this.screenElements[this.activeScreen].classList.add(`active`);
+      }, 1000);
+    } else {
+      this.screenElements.forEach((screen, index) => {
+        screen.classList.add(`screen--hidden`);
+        screen.classList.remove(`active`);
+
+        if (index === STORY_SCREEN_ID) {
+          this.screenElements[index].querySelector(`.screen__background`).classList.remove(`screen__background--scaled`);
+        }
+      });
+
+      this.screenElements[this.activeScreen].classList.remove(`screen--hidden`);
+      this.screenElements[this.activeScreen].classList.add(`active`);
+    }
   }
 
   changeActiveMenuItem() {
