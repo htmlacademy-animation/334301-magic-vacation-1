@@ -33,26 +33,6 @@
   line-height: 0.906;
   letter-spacing: -0.04em;
 
-  > span {
-    overflow: hidden;
-    display: block;
-    white-space: nowrap;
-
-    padding-top: 0.2em;
-    margin-top: -0.2em;
-  }
-
-  > span span {
-    display: inline-block;
-    transform: translate3d(0, 1.5em, 0);
-  }
-
-  &--active {
-    > span span {
-      transform: translate3d(0, 0, 0);
-    }
-  }
-
   @media (min-width: $stop-scaling) {
     max-width: 990px;
     font-size: 120px;
@@ -182,5 +162,35 @@
   @media (min-width: $stop-scaling) {
     margin: 0 0 0 -5px;
     font-size: 48px;
+  }
+}
+
+
+.intro__title,
+.intro__date {
+  > span {
+    overflow: hidden;
+    display: inline-block;
+    white-space: nowrap;
+
+    padding-top: 0.2rem;
+    margin-top: -0.2rem;
+  }
+
+  > span span {
+    display: inline-block;
+    transform: translate3d(0, 150%, 0);
+  }
+
+  &.active {
+    > span span {
+      transform: translate3d(0, 0, 0);
+    }
+  }
+}
+
+.intro__date {
+  > span {
+    padding-right: 1rem;
   }
 }

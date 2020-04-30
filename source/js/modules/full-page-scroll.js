@@ -1,6 +1,6 @@
 import throttle from 'lodash/throttle';
 
-import introTitle from './intro-title.js';
+import introElements from './intro';
 
 const INTRO_SCREEN_ID = 0;
 const STORY_SCREEN_ID = 1;
@@ -79,9 +79,9 @@ export default class FullPageScroll {
     this.screenElements[this.activeScreen].classList.add(`active`);
 
     if (this.activeScreen === INTRO_SCREEN_ID) {
-      introTitle.runAnimation();
+      introElements.forEach((elememt) => elememt.runAnimation());
     } else {
-      introTitle.destroyAnimation();
+      introElements.forEach((elememt) => elememt.destroyAnimation());
     }
   }
 

@@ -1,9 +1,8 @@
 const TIMER_STEP = 100;
 
-
-class IntroTitle {
-  constructor(titleElement, timer) {
-    this.titleElement = titleElement;
+export default class AnimatedText {
+  constructor(element, timer) {
+    this.element = element;
     this.timer = timer;
     this.timerDelay = 0;
     this.lettersArray = [];
@@ -22,8 +21,8 @@ class IntroTitle {
   }
 
   prepareText() {
-    const wordsArray = this.titleElement.textContent.split(` `);
-    this.titleElement.textContent = ``;
+    const wordsArray = this.element.textContent.split(` `);
+    this.element.textContent = ``;
 
     wordsArray.forEach((word) => {
       const wordSpan = document.createElement(`span`);
@@ -37,7 +36,7 @@ class IntroTitle {
         wordSpan.appendChild(letterSpan);
       });
 
-      this.titleElement.appendChild(wordSpan);
+      this.element.appendChild(wordSpan);
     });
   }
 
@@ -71,15 +70,13 @@ class IntroTitle {
 
   runAnimation() {
     setTimeout(() => {
-      this.titleElement.classList.add(`intro__title--active`);
+      this.element.classList.add(`active`);
     }, this.timer);
   }
 
   destroyAnimation() {
-    this.titleElement.classList.remove(`intro__title--active`);
+    this.element.classList.remove(`active`);
   }
 }
 
-const introTitle = new IntroTitle(document.querySelector(`.intro__title`), 500);
 
-export default introTitle;
