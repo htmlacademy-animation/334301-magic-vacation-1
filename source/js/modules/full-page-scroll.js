@@ -1,5 +1,8 @@
 import throttle from 'lodash/throttle';
 
+import introElements from './intro';
+
+const INTRO_SCREEN_ID = 0;
 const STORY_SCREEN_ID = 1;
 const PRIZES_SCREEN_ID = 2;
 
@@ -59,18 +62,26 @@ export default class FullPageScroll {
         this.screenElements[this.activeScreen].classList.remove(`screen--hidden`);
         this.screenElements[this.activeScreen].classList.add(`active`);
       }, 1000);
+
+      return;
+    }
+
+    this.screenElements.forEach((screen, index) => {
+      screen.classList.add(`screen--hidden`);
+      screen.classList.remove(`active`);
+
+      if (index === STORY_SCREEN_ID) {
+        this.screenElements[index].querySelector(`.screen__background`).classList.remove(`screen__background--scaled`);
+      }
+    });
+
+    this.screenElements[this.activeScreen].classList.remove(`screen--hidden`);
+    this.screenElements[this.activeScreen].classList.add(`active`);
+
+    if (this.activeScreen === INTRO_SCREEN_ID) {
+      introElements.forEach((elememt) => elememt.runAnimation());
     } else {
-      this.screenElements.forEach((screen, index) => {
-        screen.classList.add(`screen--hidden`);
-        screen.classList.remove(`active`);
-
-        if (index === STORY_SCREEN_ID) {
-          this.screenElements[index].querySelector(`.screen__background`).classList.remove(`screen__background--scaled`);
-        }
-      });
-
-      this.screenElements[this.activeScreen].classList.remove(`screen--hidden`);
-      this.screenElements[this.activeScreen].classList.add(`active`);
+      introElements.forEach((elememt) => elememt.destroyAnimation());
     }
   }
 

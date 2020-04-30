@@ -25,7 +25,7 @@
 
 .intro__title {
   margin: 0;
-  max-width: 99rem;
+  max-width: 100rem;
   text-transform: uppercase;
   font-family: $font-alt;
   font-weight: 400;
@@ -162,5 +162,35 @@
   @media (min-width: $stop-scaling) {
     margin: 0 0 0 -5px;
     font-size: 48px;
+  }
+}
+
+
+.intro__title,
+.intro__date {
+  > span {
+    overflow: hidden;
+    display: inline-block;
+    white-space: nowrap;
+
+    padding-top: 0.2rem;
+    margin-top: -0.2rem;
+  }
+
+  > span span {
+    display: inline-block;
+    transform: translate3d(0, 150%, 0);
+  }
+
+  &.active {
+    > span span {
+      transform: translate3d(0, 0, 0);
+    }
+  }
+}
+
+.intro__date {
+  > span {
+    padding-right: 1rem;
   }
 }
