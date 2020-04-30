@@ -78,5 +78,3 @@ export default class AnimatedText {
     this.element.classList.remove(`active`);
   }
 }
-
-
