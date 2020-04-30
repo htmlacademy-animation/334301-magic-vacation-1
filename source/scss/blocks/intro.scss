@@ -33,6 +33,28 @@
   line-height: 0.906;
   letter-spacing: -0.04em;
 
+  > span {
+    overflow: hidden;
+    display: block;
+    white-space: nowrap;
+
+    &:first-of-type {
+      padding-top: 0.2em;
+      margin-top: -0.2em;
+    }
+  }
+
+  > span span {
+    display: inline-block;
+    transform: translate3d(0, 1.5em, 0);
+  }
+
+  &--active {
+    > span span {
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
   @media (min-width: $stop-scaling) {
     max-width: 990px;
     font-size: 120px;
