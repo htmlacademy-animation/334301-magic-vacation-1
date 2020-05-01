@@ -1,15 +1,12 @@
 const TIMER_STEP = 100;
 
 export default class AnimatedText {
-  constructor(element, timer) {
+  constructor(element) {
     this.element = element;
-    this.timer = timer;
     this.timerDelay = 0;
     this.lettersArray = [];
 
     this.init = this.init.bind(this);
-    this.runAnimation = this.runAnimation.bind(this);
-    this.destroyAnimation = this.destroyAnimation.bind(this);
     this.prepareText = this.prepareText.bind(this);
     this.prepareLetters = this.prepareLetters.bind(this);
     this.setLetterStyles = this.setLetterStyles.bind(this);
@@ -63,18 +60,9 @@ export default class AnimatedText {
   }
 
   setLetterStyles(letter) {
-    letter.style.transition = `transform ${this.timer}ms ease-in-out ${this.timerDelay}ms`;
+    letter.classList.add(`animated-letter`);
+    letter.style.animationDelay = `${this.timerDelay}ms`;
 
     this.timerDelay += TIMER_STEP;
-  }
-
-  runAnimation() {
-    setTimeout(() => {
-      this.element.classList.add(`active`);
-    }, this.timer);
-  }
-
-  destroyAnimation() {
-    this.element.classList.remove(`active`);
   }
 }

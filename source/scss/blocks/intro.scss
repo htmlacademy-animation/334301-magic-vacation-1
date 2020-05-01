@@ -179,13 +179,6 @@
 
   > span span {
     display: inline-block;
-    transform: translate3d(0, 150%, 0);
-  }
-
-  &.active {
-    > span span {
-      transform: translate3d(0, 0, 0);
-    }
   }
 }
 

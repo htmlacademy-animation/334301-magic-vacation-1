@@ -43,3 +43,37 @@
     transform: scaleY(1);
   }
 }
+
+@keyframes rolling-to-right {
+  0% {
+    opacity: 0;
+    transform: translateX(-10rem) rotate(-360deg);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateX(2rem) rotate(45deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0) rotate(0deg);
+  }
+}
+
+@keyframes rolling-to-left {
+  0% {
+    opacity: 0;
+    transform: translateX(10rem) rotate(360deg);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateX(-2rem) rotate(-45deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0) rotate(0deg);
+  }
+}
