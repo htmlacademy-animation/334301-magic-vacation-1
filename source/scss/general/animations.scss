@@ -44,7 +44,7 @@
   }
 }
 
-@keyframes rolling-to-right {
+@keyframes rolling-from-left {
   0% {
     opacity: 0;
     transform: translateX(-10rem) rotate(-360deg);
@@ -61,7 +61,7 @@
   }
 }
 
-@keyframes rolling-to-left {
+@keyframes rolling-from-right {
   0% {
     opacity: 0;
     transform: translateX(10rem) rotate(360deg);

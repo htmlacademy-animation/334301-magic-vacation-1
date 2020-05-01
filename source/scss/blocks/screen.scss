@@ -309,11 +309,11 @@
 
 .screen--story.active {
   .slider__control--prev {
-    animation: rolling-to-right 1s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+    animation: rolling-from-left 1s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
   }
 
   .slider__control--next {
-    animation: rolling-to-left 1s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+    animation: rolling-from-right 1s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
   }
 }
 
