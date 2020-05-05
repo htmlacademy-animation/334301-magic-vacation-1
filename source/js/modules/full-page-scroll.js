@@ -3,6 +3,8 @@ import throttle from 'lodash/throttle';
 const STORY_SCREEN_ID = 1;
 const PRIZES_SCREEN_ID = 2;
 
+let version = 0;
+
 export default class FullPageScroll {
   constructor() {
     this.THROTTLE_TIMEOUT = 2000;
@@ -62,6 +64,18 @@ export default class FullPageScroll {
 
       return;
     }
+
+    if (this.activeScreen === PRIZES_SCREEN_ID) {
+      const prizesIcons = [].slice.call(document.querySelectorAll(`.prizes__icon`));
+      prizesIcons.forEach((icon) => {
+        version += 1;
+        const image = icon.querySelector(`img`);
+        const file = image.src;
+        image.src = ``;
+        image.src = `${file}?v=${version}`;
+      });
+    }
+
 
     this.screenElements.forEach((screen, index) => {
       screen.classList.add(`screen--hidden`);
