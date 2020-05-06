@@ -228,7 +228,7 @@
                       additive="sum"
                       repeatDur="0.5s"
                     />
-                     <animateTransform
+                    <animateTransform
                       id="flRot"
                       begin="enter.end"
                       attributeName="transform"
