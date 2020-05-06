@@ -14,6 +14,27 @@ export default () => {
         });
         targetEl[0].classList.add(`screen--show`);
         targetEl[0].classList.remove(`screen--hidden`);
+
+        const targetTitle = targetEl[0].querySelector(`.result__title`);
+        const targetTitleSvg = targetTitle.querySelector(`svg`);
+        const svgClone = targetTitleSvg.cloneNode(true);
+        targetTitleSvg.remove();
+
+        const pathes = [].slice.call(svgClone.querySelectorAll(`path`));
+        pathes.forEach((path) => {
+          const pathLength = path.getTotalLength();
+
+          path.setAttribute(`stroke-dashoffset`, 0);
+          path.setAttribute(`stroke-dasharray`, `0 ${2 * pathLength / 6} ${pathLength / 6} ${2 * pathLength / 6} ${pathLength / 6}`);
+          const animationDashArray = path.querySelector(`.anim--dasharray`);
+
+          if (animationDashArray) {
+            animationDashArray.setAttribute(`from`, `0 ${2 * pathLength / 6} ${pathLength / 6} ${2 * pathLength / 6} ${pathLength / 6}`);
+            animationDashArray.setAttribute(`to`, `0 0 ${3 * pathLength / 6} 0 ${3 * pathLength / 6}`);
+          }
+        });
+
+        targetTitle.appendChild(svgClone);
       });
     }
 
