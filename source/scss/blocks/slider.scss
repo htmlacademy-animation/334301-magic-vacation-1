@@ -2,27 +2,13 @@
   position: relative;
   flex-grow: 1;
   width: 100%;
-  z-index: 2;
 
   .swiper-wrapper {
     min-height: 100vh;
+    box-sizing: border-box;
 
     @media (max-width: $tablet) and (orientation: portrait) {
       min-height: calc(var(--vh, 1vh) * 100);
-    }
-  }
-
-  .swiper-slide-active {
-    .slider__item-title,
-    .slider__item-text {
-      animation: fade-in-right-left 1s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
-    }
-  }
-
-  .swiper-slide-next {
-    .slider__item-title,
-    .slider__item-text {
-      animation: fade-in-left-right 1s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
     }
   }
 }
