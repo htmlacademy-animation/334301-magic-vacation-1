@@ -104,8 +104,19 @@
   }
 }
 
+.prizes__item--journeys.prizes__item--moved-left {
+  animation: right-left 1s cubic-bezier(0.390, 0.575, 0.565, 1.000) 0.4s both;
+}
+
 .prizes__item {
   margin-left: 7.5rem;
+  position: relative;
+
+  &--active {
+    .prizes__desc {
+      opacity: 1;
+    }
+  }
 
   @media (min-width: $stop-scaling) {
     margin-left: 75px;
@@ -127,6 +138,8 @@
   }
 
   &--journeys {
+    transform: translateX(100%);
+
     .prizes__icon {
       position: relative;
       left: -5.9rem;
@@ -242,6 +255,8 @@
   margin: 5.6rem 0 0 0;
   font-size: 1.8rem;
   line-height: 1.1;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
 
   @media (min-width: $stop-scaling) {
     margin-top: 56px;
