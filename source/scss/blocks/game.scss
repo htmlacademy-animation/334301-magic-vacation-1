@@ -44,7 +44,6 @@
 .game__title {
   margin: 0;
   text-transform: uppercase;
-  position: relative;
   font-family: $font-alt;
   font-weight: 400;
   font-size: 4.8rem;
@@ -73,8 +72,6 @@
 
 .game__counter {
   margin: 0;
-  position: absolute;
-  left: calc(100% - 16rem);
   text-transform: uppercase;
   font-family: $font-alt;
   font-weight: 400;
@@ -84,6 +81,10 @@
 
   @media (min-width: $stop-scaling) {
     font-size: 48px;
+  }
+
+  @media (min-width: $tablet) {
+    margin-right: 5.6rem;
   }
 
   @media (max-width: $tablet) and (orientation: portrait) {
@@ -113,6 +114,7 @@
   left: 0;
   z-index: 100;
   opacity: 0.5;
+  display: none;
 }
 
 .game__button {

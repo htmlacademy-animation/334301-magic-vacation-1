@@ -59,6 +59,7 @@
     "node": "8.15"
   },
   "dependencies": {
+    "normalize.css": "8.0.1",
     "swiper": "5.3.8",
     "three": "0.115.0"
   }
