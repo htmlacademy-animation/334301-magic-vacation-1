@@ -1,7 +1,9 @@
 import throttle from 'lodash/throttle';
+import game from './game';
 
 const STORY_SCREEN_ID = 1;
 const PRIZES_SCREEN_ID = 2;
+const GAME_SCREEN_ID = 4;
 
 let version = 0;
 
@@ -84,6 +86,12 @@ export default class FullPageScroll {
         this.screenElements[index].querySelector(`.screen__background`).classList.remove(`screen__background--scaled`);
       }
     });
+
+    if (this.activeScreen === GAME_SCREEN_ID) {
+      game.runCounterAnimation();
+    } else {
+      game.stopCounterAnimation();
+    }
 
     this.screenElements[this.activeScreen].classList.remove(`screen--hidden`);
     this.screenElements[this.activeScreen].classList.add(`active`);

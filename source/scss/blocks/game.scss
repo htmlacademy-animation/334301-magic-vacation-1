@@ -44,6 +44,7 @@
 .game__title {
   margin: 0;
   text-transform: uppercase;
+  position: relative;
   font-family: $font-alt;
   font-weight: 400;
   font-size: 4.8rem;
@@ -72,6 +73,8 @@
 
 .game__counter {
   margin: 0;
+  position: absolute;
+  left: calc(100% - 16rem);
   text-transform: uppercase;
   font-family: $font-alt;
   font-weight: 400;
