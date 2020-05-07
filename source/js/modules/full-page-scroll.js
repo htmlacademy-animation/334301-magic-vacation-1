@@ -1,11 +1,10 @@
 import throttle from 'lodash/throttle';
 import game from './game';
+import prizes from './prizes';
 
 const STORY_SCREEN_ID = 1;
 const PRIZES_SCREEN_ID = 2;
 const GAME_SCREEN_ID = 4;
-
-let version = 0;
 
 export default class FullPageScroll {
   constructor() {
@@ -62,20 +61,16 @@ export default class FullPageScroll {
 
         this.screenElements[this.activeScreen].classList.remove(`screen--hidden`);
         this.screenElements[this.activeScreen].classList.add(`active`);
+        prizes.initiatePrizes();
       }, 1000);
 
       return;
     }
 
-    if (this.activeScreen === PRIZES_SCREEN_ID) {
-      const prizesIcons = [].slice.call(document.querySelectorAll(`.prizes__icon`));
-      prizesIcons.forEach((icon) => {
-        version += 1;
-        const image = icon.querySelector(`img`);
-        const file = image.src;
-        image.src = ``;
-        image.src = `${file}?v=${version}`;
-      });
+    if (this.activeScreen === PRIZES_SCREEN_ID && previousScreen !== STORY_SCREEN_ID) {
+      prizes.initiatePrizes();
+    } else {
+      prizes.deactivatePrizes();
     }
 
     this.screenElements.forEach((screen, index) => {

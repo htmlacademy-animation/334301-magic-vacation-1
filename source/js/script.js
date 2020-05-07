@@ -12,6 +12,7 @@ import body from './modules/body.js';
 import rules from './modules/rules.js';
 import introElements from './modules/intro.js';
 import game from './modules/game.js';
+import prizes from './modules/prizes.js';
 
 
 // init modules
@@ -27,6 +28,7 @@ body();
 rules();
 
 game.init();
+prizes.init();
 const fullPageScroll = new FullPageScroll();
 fullPageScroll.init();
 introElements.forEach((element) => element.init());

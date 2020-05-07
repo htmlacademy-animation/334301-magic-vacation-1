@@ -1,3 +1,13 @@
+@keyframes right-left {
+  0% {
+    transform: translateX(100%);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
 @keyframes fade-in-right-left {
   0% {
     opacity: 0;
