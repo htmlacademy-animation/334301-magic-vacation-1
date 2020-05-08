@@ -140,6 +140,11 @@
   &--journeys {
     transform: translateX(100%);
 
+    .prizes__desc {
+      position: relative;
+      left: -2.2rem;
+    }
+
     .prizes__icon {
       position: relative;
       left: -5.9rem;
