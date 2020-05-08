@@ -1,4 +1,10 @@
 import throttle from 'lodash/throttle';
+import game from './game';
+import prizes from './prizes';
+
+const STORY_SCREEN_ID = 1;
+const PRIZES_SCREEN_ID = 2;
+const GAME_SCREEN_ID = 4;
 
 export default class FullPageScroll {
   constructor() {
@@ -8,6 +14,7 @@ export default class FullPageScroll {
     this.menuElements = document.querySelectorAll(`.page-header__menu .js-menu-link`);
 
     this.activeScreen = 0;
+    this.previousScreen = 0;
     this.onScrollHandler = this.onScroll.bind(this);
     this.onUrlHashChengedHandler = this.onUrlHashChanged.bind(this);
   }
@@ -40,10 +47,47 @@ export default class FullPageScroll {
   }
 
   changeVisibilityDisplay() {
-    this.screenElements.forEach((screen) => {
+    const previousScreen = Array.from(this.screenElements).findIndex((screen) => screen.classList.contains(`active`));
+
+    if (previousScreen === STORY_SCREEN_ID && this.activeScreen === PRIZES_SCREEN_ID) {
+      this.screenElements[previousScreen].querySelector(`.screen__background`).classList.add(`screen__background--scaled`);
+
+      setTimeout(() => {
+        this.screenElements.forEach((screen) => {
+          screen.classList.add(`screen--hidden`);
+          screen.classList.remove(`active`);
+        });
+
+        this.screenElements[this.activeScreen].classList.remove(`screen--hidden`);
+        this.screenElements[this.activeScreen].classList.add(`active`);
+        prizes.initiatePrizes();
+      }, 1000);
+
+      return;
+    }
+
+
+    if (this.activeScreen === PRIZES_SCREEN_ID && previousScreen !== STORY_SCREEN_ID) {
+      prizes.initiatePrizes();
+    } else {
+      prizes.deactivatePrizes();
+    }
+
+    this.screenElements.forEach((screen, index) => {
       screen.classList.add(`screen--hidden`);
       screen.classList.remove(`active`);
+
+      if (index === STORY_SCREEN_ID) {
+        this.screenElements[index].querySelector(`.screen__background`).classList.remove(`screen__background--scaled`);
+      }
     });
+
+    if (this.activeScreen === GAME_SCREEN_ID) {
+      game.runCounterAnimation();
+    } else {
+      game.stopCounterAnimation();
+    }
+
     this.screenElements[this.activeScreen].classList.remove(`screen--hidden`);
     this.screenElements[this.activeScreen].classList.add(`active`);
   }

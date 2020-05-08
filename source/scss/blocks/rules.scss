@@ -191,6 +191,13 @@
   bottom: 6rem;
   right: 5.6rem;
 
+  visibility: hidden;
+
+  &--visible {
+    visibility: visible;
+    animation: fade-in-left-right 1s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+  }
+
   @media (min-width: $stop-scaling) {
     bottom: 60px;
     right: 56px;

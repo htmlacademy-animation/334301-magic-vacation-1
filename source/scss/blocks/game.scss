@@ -42,6 +42,7 @@
 }
 
 .game__title {
+  position: relative;
   margin: 0;
   text-transform: uppercase;
   font-family: $font-alt;
@@ -79,6 +80,9 @@
   line-height: 0.906;
   letter-spacing: 0;
 
+  position: absolute;
+  left: calc(100% - 16rem);
+
   @media (min-width: $stop-scaling) {
     font-size: 48px;
   }
@@ -114,7 +118,6 @@
   left: 0;
   z-index: 100;
   opacity: 0.5;
-  display: none;
 }
 
 .game__button {
