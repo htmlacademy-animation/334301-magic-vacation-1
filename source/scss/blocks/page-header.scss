@@ -284,6 +284,9 @@
     &.active {
       &::after {
         display: block;
+
+        opacity: 1;
+        transform: scaleX(1);
       }
     }
 
