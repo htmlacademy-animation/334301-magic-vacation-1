@@ -282,7 +282,25 @@
     font-size: 0.8rem;
   }
 
+  .prizes__value {
+    position: relative;
+    max-width: none;
+    display: inline-block;
+    margin: 0;
+
+    strong {
+      position: absolute;
+      top: 0;
+      right: 0;
+    }
+  }
+
   b {
+    opacity: 0;
+  }
+
+  b, .prizes__value strong {
+    display: inline;
     font-family: $font-alt;
     font-weight: 400;
     font-size: 12rem;

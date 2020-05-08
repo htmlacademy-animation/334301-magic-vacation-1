@@ -66,10 +66,11 @@ export default class FullPageScroll {
       return;
     }
 
-
     if (this.activeScreen === PRIZES_SCREEN_ID && previousScreen !== STORY_SCREEN_ID) {
       prizes.initiatePrizes();
-    } else {
+    }
+
+    if (previousScreen === PRIZES_SCREEN_ID) {
       prizes.deactivatePrizes();
     }
 
