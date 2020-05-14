@@ -297,14 +297,14 @@ export default () => {
             };
           });
 
-          planeImg.src = `../img/airplane.png`;
-          backImg.src = `../img/back.png`;
-          tree.src = `../img/tree.png`;
-          tree2.src = `../img/tree_2.png`;
-          iceImg.src = `../img/ice.png`;
-          animalImg.src = `../img/sea-calf-2.png`;
-          flakeLeft.src = `../img/snowflake.png`;
-          flakeRight.src = `../img/snowflake-r.png`;
+          planeImg.src = `img/airplane.png`;
+          backImg.src = `img/back.png`;
+          tree.src = `img/tree.png`;
+          tree2.src = `img/tree_2.png`;
+          iceImg.src = `img/ice.png`;
+          animalImg.src = `img/sea-calf-2.png`;
+          flakeLeft.src = `img/snowflake.png`;
+          flakeRight.src = `img/snowflake-r.png`;
         }
       });
     }
