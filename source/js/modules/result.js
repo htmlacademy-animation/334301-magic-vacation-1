@@ -71,104 +71,85 @@ export default () => {
             height: 324
           },
           tree: {
-            width: 38,
-            height: 101
+            width: 48,
+            height: 151
           },
           tree2: {
-            width: 50,
-            height: 159
+            width: 60,
+            height: 209
           }
         };
 
         let windowHeight = window.innerHeight;
         let windowWidth = window.innerWidth;
 
-        const backCanvas = targetEl[0].querySelector(`#back`);
-        if (backCanvas.getContext) {
-          const backContext = backCanvas.getContext(`2d`);
-          let backOpacity = 0;
+        const winCanvas = targetEl[0].querySelector(`#win`);
+        if (winCanvas.getContext) {
+          const winContext = winCanvas.getContext(`2d`);
+          let winOpacity = 0;
           let backScale = 1;
-          let backAnimation = [];
+          let treeTranslateY = 200;
+          let planeScale = 0;
+          let planeRotate = 70;
+          let planeTranslateX = -200;
+          let planeTranslateY = -400;
+          let calfTranslateY = windowHeight / 2;
+          let calfRotateAngle = 20;
+          let flakeLeftTranslateY = -50;
+          let flakeRightTranlateY = 20;
+          let winAnimation = [];
 
-          const drawBackCanvas = () => {
-            backCanvas.width = windowWidth;
-            backCanvas.height = windowHeight;
-
-            backContext.globalAlpha = backOpacity;
-
-            backContext.clearRect(0, 0, windowWidth, windowHeight);
-
-            backContext.save();
-
-            backContext.drawImage(backImg, Math.round(((windowWidth - sizes.back.width) / 2)) + 50, Math.round(((windowHeight - sizes.back.height) / 2)) - 50 + 100, sizes.back.width * backScale, sizes.back.height);
-
-            backContext.restore();
+          const rotateObject = (angle, cx, cy) => {
+            winContext.translate(cx, cy);
+            winContext.rotate(angle * Math.PI / 180);
+            winContext.translate(-cx, -cy);
           };
 
-          window.addEventListener(`resize`, drawBackCanvas);
+          const drawWinCanvas = () => {
+            winCanvas.width = windowWidth;
+            winCanvas.height = windowHeight;
+            winContext.clearRect(0, 0, windowWidth, windowHeight);
+            winContext.save();
 
-          const backOpacityAnimationTick = (from, to) => (progress) => {
-            backOpacity = from + progress * Math.sign(to - from) * Math.abs(to - from);
+            winContext.globalAlpha = winOpacity;
+            winContext.drawImage(backImg, Math.round(((windowWidth - sizes.back.width) / 2)) + 50, Math.round(((windowHeight - sizes.back.height) / 2)) - 50 + 100, sizes.back.width * backScale, sizes.back.height);
+            winContext.drawImage(tree, Math.round(((windowWidth - sizes.tree.width) / 2) + 150), Math.round(((windowHeight - sizes.tree.height) / 2) + 125), sizes.tree.width, sizes.tree.height);
+            winContext.drawImage(tree2, Math.round(((windowWidth - sizes.tree2.width) / 2) + 110), Math.round(((windowHeight - sizes.tree2.height) / 2) + 96 + treeTranslateY), sizes.tree2.width, sizes.tree2.height);
+            winContext.restore();
+            winContext.save();
+
+            winContext.globalAlpha = winOpacity;
+            rotateObject(planeRotate, windowWidth / 2, windowHeight / 2);
+            winContext.drawImage(planeImg, Math.round(((windowWidth - sizes.plane.width) / 2) + planeTranslateX), Math.round(((windowHeight - sizes.plane.height) / 2) + planeTranslateY + 100), sizes.plane.width * (planeScale), sizes.plane.height * planeScale);
+            winContext.restore();
+            winContext.save();
+
+            winContext.globalAlpha = 1;
+            rotateObject(calfRotateAngle, windowWidth / 2, windowHeight / 2);
+            winContext.drawImage(iceImg, Math.round((windowWidth - sizes.ice.width) / 2), Math.round((windowHeight - sizes.ice.height) / 2 + 188 + calfTranslateY), sizes.ice.width, sizes.ice.height);
+            winContext.drawImage(animalImg, Math.round((windowWidth - sizes.animal.width) / 2), Math.round((windowHeight - sizes.animal.height) / 2 + 100 + calfTranslateY), sizes.animal.width, sizes.animal.height);
+            winContext.restore();
+            winContext.save();
+
+            winContext.globalAlpha = winOpacity;
+            winContext.drawImage(flakeLeft, Math.round(((windowWidth - sizes.flakeLeft.width) / 2) - 236), Math.round(((windowHeight - sizes.flakeLeft.height) / 2) + 100 + flakeLeftTranslateY), sizes.flakeLeft.width, sizes.flakeLeft.height);
+            winContext.drawImage(flakeRight, Math.round(((windowWidth - sizes.flakeRight.width) / 2) + 212), Math.round(((windowHeight - sizes.flakeRight.height) / 2) + 100 + flakeRightTranlateY), sizes.flakeRight.width, sizes.flakeRight.height);
+            winContext.restore();
+          };
+
+          window.addEventListener(`resize`, drawWinCanvas);
+
+          const winOpacityAnimationTick = (from, to) => (progress) => {
+            winOpacity = from + progress * Math.sign(to - from) * Math.abs(to - from);
           };
 
           const backScaleAnimationTick = (from, to) => (progress) => {
             backScale = from + progress * Math.sign(to - from) * Math.abs(to - from);
           };
 
-          const globalOpacityAnimationTick = async (globalProgress) => {
-            if (globalProgress >= 0 && backAnimation.indexOf(`backO`) === -1) {
-              backAnimation.push(`backO`);
-
-              animate.easing(backOpacityAnimationTick(0, 1), 1000, bezierEasing(0.00, 0.0, 0.58, 1.0));
-              animate.easing(backScaleAnimationTick(0, 1.1), 2000, bezierEasing(0.00, 0.0, 0.58, 1.0));
-            }
-            drawBackCanvas();
+          const treeTranslateYAnimationTick = (from, to) => (progress) => {
+            treeTranslateY = from + progress * Math.sign(to - from) * Math.abs(to - from);
           };
-
-          let backImg = new Image();
-
-          backImg.onload = () => {
-            drawBackCanvas();
-
-            animate.duration(globalOpacityAnimationTick, 2000);
-          };
-
-          backImg.src = `/img/back.png`;
-        }
-
-        const planeCanvas = targetEl[0].querySelector(`#plane`);
-        if (planeCanvas.getContext) {
-          const planeContext = planeCanvas.getContext(`2d`);
-          let planeOpacity = 1;
-          let planeScale = 1;
-          let planeRotate = 70;
-          let planeTranslateX = -200;
-          let planeTranslateY = -400;
-          let planeAnimation = [];
-
-          const rotatePlane = (angle, cx, cy) => {
-            planeContext.translate(cx, cy);
-            planeContext.rotate(angle * Math.PI / 180);
-            planeContext.translate(-cx, -cy);
-          };
-
-          const drawPlaneCanvas = () => {
-            planeCanvas.width = windowWidth;
-            planeCanvas.height = windowHeight;
-            planeContext.globalAlpha = planeOpacity;
-
-            planeContext.clearRect(0, 0, windowWidth, windowHeight);
-
-            planeContext.save();
-
-            rotatePlane(planeRotate, windowWidth / 2, windowHeight / 2);
-
-            planeContext.drawImage(planeImg, Math.round(((windowWidth - sizes.plane.width) / 2) + planeTranslateX), Math.round(((windowHeight - sizes.plane.height) / 2) + planeTranslateY + 100), sizes.plane.width * (planeScale), sizes.plane.height * planeScale);
-
-            planeContext.restore();
-          };
-
-          window.addEventListener(`resize`, drawPlaneCanvas);
 
           const planeTranslateXAnimationTick = (from, to) => (progress) => {
             planeTranslateX = from + progress * Math.sign(to - from) * Math.abs(to - from);
@@ -176,10 +157,6 @@ export default () => {
 
           const planeTranslateYAnimationTick = (from, to) => (progress) => {
             planeTranslateY = from + progress * Math.sign(to - from) * Math.abs(to - from);
-          };
-
-          const planeOpacityAnimationTick = (from, to) => (progress) => {
-            planeOpacity = from + progress * Math.sign(to - from) * Math.abs(to - from);
           };
 
           const planeScaleAnimationTick = (from, to) => (progress) => {
@@ -190,67 +167,12 @@ export default () => {
             planeRotate = from + progress * Math.sign(to - from) * Math.abs(to - from);
           };
 
-          const globalOpacityAnimationTick = (globalProgress) => {
-            if (globalProgress >= 0 && planeAnimation.indexOf(`planeO`) === -1) {
-              planeAnimation.push(`planeO`);
-
-              animate.easing(planeOpacityAnimationTick(0, 1), 1000, bezierEasing(0.00, 0.0, 0.58, 1.0));
-            }
-            drawPlaneCanvas();
+          const calfTranslateYAnimationTick = (from, to) => (progress) => {
+            calfTranslateY = from + progress * Math.sign(to - from) * Math.abs(to - from);
           };
 
-          const globalTransformingAnimationTick = (globalProgress) => {
-            if (globalProgress >= 0 && planeAnimation.indexOf(`planeT`) === -1) {
-              planeAnimation.push(`planeT`);
-
-              animate.easing(planeScaleAnimationTick(0, 1), 500, bezierEasing(0.00, 0.0, 0.58, 1.0));
-              animate.easing(planeRotateAnimationTick(70, 0), 2000, bezierEasing(0.00, 0.0, 0.58, 1.0));
-              animate.easing(planeTranslateXAnimationTick(planeTranslateX, 450), 2000, bezierEasing(0.00, 0.0, 0.58, 1.0));
-              animate.easing(planeTranslateYAnimationTick(planeTranslateY, -150), 2000, bezierEasing(0.00, 0.0, 0.58, 1.0));
-            }
-            drawPlaneCanvas();
-          };
-
-          let planeImg = new Image();
-
-          planeImg.onload = () => {
-            drawPlaneCanvas();
-
-            animate.duration(globalOpacityAnimationTick, 1000);
-            animate.duration(globalTransformingAnimationTick, 3000);
-            // animate.duration(globalMovingAnimationTick, 3000);
-          };
-
-          planeImg.src = `/img/airplane.png`;
-        }
-
-        const flakesCanvas = targetEl[0].querySelector(`#snowflakes`);
-        if (flakesCanvas.getContext) {
-          const flakesContext = flakesCanvas.getContext(`2d`);
-          let flakesOpacity = 0;
-          let flakeLeftTranslateY = -50;
-          let flakeRightTranlateY = 20;
-          let flakesAnimation = [];
-
-          const drawFlakesCanvas = () => {
-            flakesCanvas.width = windowWidth;
-            flakesCanvas.height = windowHeight;
-            flakesContext.globalAlpha = flakesOpacity;
-
-            flakesContext.clearRect(0, 0, windowWidth, windowHeight);
-
-            flakesContext.save();
-
-            flakesContext.drawImage(flakeLeft, Math.round(((windowWidth - sizes.flakeLeft.width) / 2) - 236), Math.round(((windowHeight - sizes.flakeLeft.height) / 2) + 100 + flakeLeftTranslateY), sizes.flakeLeft.width, sizes.flakeLeft.height);
-            flakesContext.drawImage(flakeRight, Math.round(((windowWidth - sizes.flakeRight.width) / 2) + 212), Math.round(((windowHeight - sizes.flakeRight.height) / 2) + 100 + flakeRightTranlateY), sizes.flakeRight.width, sizes.flakeRight.height);
-
-            flakesContext.restore();
-          };
-
-          window.addEventListener(`resize`, drawFlakesCanvas);
-
-          const flakesOpacityAnimationTick = (from, to) => (progress) => {
-            flakesOpacity = from + progress * Math.sign(to - from) * Math.abs(to - from);
+          const calfRotateAnimationTick = (from, to) => (progress) => {
+            calfRotateAngle = from + progress * Math.sign(to - from) * Math.abs(to - from);
           };
 
           const flakeLeftTranslateYAnimationTick = (from, to) => (progress) => {
@@ -261,249 +183,43 @@ export default () => {
             flakeRightTranlateY = from + progress * Math.sign(to - from) * Math.abs(to - from);
           };
 
-          const globalOpacityAnimationTick = async (globalProgress) => {
-            if (globalProgress >= 0 && flakesAnimation.indexOf(`flakeO`) === -1) {
-              flakesAnimation.push(`flakeO`);
+          const globalWinOpacityAnimationTick = async (globalProgress) => {
+            if (globalProgress >= 0 && winAnimation.indexOf(`winO`) === -1) {
+              winAnimation.push(`winO`);
 
-              animate.easing(flakesOpacityAnimationTick(0, 1), 1000, bezierEasing(0.00, 0.0, 0.58, 1.0));
+              animate.easing(winOpacityAnimationTick(0, 1), 1000, bezierEasing(0.00, 0.0, 0.58, 1.0));
             }
-            drawFlakesCanvas();
+            drawWinCanvas();
           };
 
-          const globalLeftFlakeTransformAnimationTick = async (globalProgress) => {
-            if (globalProgress === 0) {
-              await animate.easing(flakeLeftTranslateYAnimationTick(flakeLeftTranslateY, 0), 1000, bezierEasing(0.00, 0.0, 0.58, 1.0));
+          const globalTressAnimationTick = async (globalProgress) => {
+            if (globalProgress >= 0 && winAnimation.indexOf(`treeA`) === -1) {
+              winAnimation.push(`treeA`);
 
-              await animate.easing(flakeLeftTranslateYAnimationTick(flakeLeftTranslateY, -50), 1000, bezierEasing(0.00, 0.0, 0.58, 1.0));
-
-              await animate.duration(globalLeftFlakeTransformAnimationTick, 2000);
-            }
-
-            drawFlakesCanvas();
-          };
-
-          const globalRightFlakeTransformAnimationTick = async (globalProgress) => {
-            if (globalProgress === 0) {
-              await animate.easing(flakeRightTranslateYAnimationTick(flakeRightTranlateY, 0), 1000, bezierEasing(0.00, 0.0, 0.58, 1.0));
-
-              await animate.easing(flakeRightTranslateYAnimationTick(0, 20), 1000, bezierEasing(0.00, 0.0, 0.58, 1.0));
-
-              await animate.duration(globalRightFlakeTransformAnimationTick, 2000);
-            }
-
-            drawFlakesCanvas();
-          };
-
-          let flakeLeft = new Image();
-          let flakeRight = new Image();
-          let images = [flakeLeft, flakeRight];
-          let imagesLoadCounter = 0;
-
-          images.forEach((image) => {
-            image.onload = () => {
-              imagesLoadCounter = imagesLoadCounter + 1;
-
-              if (imagesLoadCounter === images.length) {
-                drawFlakesCanvas();
-
-                animate.duration(globalOpacityAnimationTick, 1000);
-                animate.duration(globalLeftFlakeTransformAnimationTick, 2000);
-                animate.duration(globalRightFlakeTransformAnimationTick, 2000);
-              }
-            };
-          });
-
-          flakeLeft.src = `/img/snowflake.png`;
-          flakeRight.src = `/img/snowflake-r.png`;
-        }
-
-        const treesCanvas = targetEl[0].querySelector(`#trees`);
-        if (treesCanvas.getContext) {
-          const treeContext = treesCanvas.getContext(`2d`);
-          let treesOpacity = 0;
-          let treeTranslateY = 200;
-          let flakesAnimation = [];
-
-          const drawTreesCanvas = () => {
-            treesCanvas.width = windowWidth;
-            treesCanvas.height = windowHeight;
-            treeContext.globalAlpha = treesOpacity;
-
-            treeContext.clearRect(0, 0, windowWidth, windowHeight);
-
-            treeContext.save();
-
-            treeContext.drawImage(tree, Math.round(((windowWidth - sizes.tree.width) / 2) + 150), Math.round(((windowHeight - sizes.tree.height) / 2) + 125), sizes.tree.width, sizes.tree.height);
-            treeContext.drawImage(tree2, Math.round(((windowWidth - sizes.tree2.width) / 2) + 110), Math.round(((windowHeight - sizes.tree2.height) / 2) + 96 + treeTranslateY), sizes.tree2.width, sizes.tree2.height);
-
-            treeContext.restore();
-          };
-
-          window.addEventListener(`resize`, drawTreesCanvas);
-
-          const treesOpacityAnimationTick = (from, to) => (progress) => {
-            treesOpacity = from + progress * Math.sign(to - from) * Math.abs(to - from);
-          };
-
-          const treeTranslateYAnimationTick = (from, to) => (progress) => {
-            treeTranslateY = from + progress * Math.sign(to - from) * Math.abs(to - from);
-          };
-
-          const globalOpacityAnimationTick = async (globalProgress) => {
-            if (globalProgress >= 0 && flakesAnimation.indexOf(`treeO`) === -1) {
-              flakesAnimation.push(`treeO`);
-
-              animate.easing(treesOpacityAnimationTick(0, 1), 2000, bezierEasing(0.00, 0.0, 0.58, 1.0));
               animate.easing(treeTranslateYAnimationTick(200, 0), 2500, bezierEasing(0.00, 0.0, 0.58, 1.0));
             }
-            drawTreesCanvas();
+            drawWinCanvas();
           };
 
-          let tree = new Image();
-          let tree2 = new Image();
-          let images = [tree, tree2];
-          let imagesLoadCounter = 0;
+          const globalPlaneAnimationTick = (globalProgress) => {
+            if (globalProgress >= 0 && winAnimation.indexOf(`planeA`) === -1) {
+              winAnimation.push(`planeA`);
 
-          images.forEach((image) => {
-            image.onload = () => {
-              imagesLoadCounter = imagesLoadCounter + 1;
+              animate.easing(backScaleAnimationTick(0, 1.1), 2000, bezierEasing(0.00, 0.0, 0.58, 1.0));
 
-              if (imagesLoadCounter === images.length) {
-                drawTreesCanvas();
-
-                animate.duration(globalOpacityAnimationTick, 2500);
-              }
-            };
-          });
-
-          tree.src = `/img/tree.png`;
-          tree2.src = `/img/tree_2.png`;
-        }
-
-        // const treesCanvas = targetEl[0].querySelector(`#trees`);
-        // if (treesCanvas.getContext) {
-        //   const treesContext = flakesCanvas.getContext(`2d`);
-        //   let treesOpacity = 0;
-        //   let treeTranslateY = 200;
-        //   let treesAnimation = [];
-
-        //   const drawTreesCanvas = () => {
-        //     treesCanvas.width = windowWidth;
-        //     treesCanvas.height = windowHeight;
-        //     treesContext.globalAlpha = treesOpacity;
-
-        //     treesContext.clearRect(0, 0, windowWidth, windowHeight);
-
-        //     treesContext.save();
-
-        //     treesContext.drawImage(tree, Math.round(((windowWidth - sizes.tree.width) / 2)), Math.round(((windowHeight - sizes.tree.height) / 2)), sizes.tree.width, sizes.tree.height);
-        //     treesContext.drawImage(tree2, Math.round(((windowWidth - sizes.tree2.width) / 2)), Math.round(((windowHeight - sizes.tree2.height) / 2)), sizes.tree2.width, sizes.tree2.height);
-
-        //     treesContext.restore();
-        //   };
-
-        //   window.addEventListener(`resize`, drawTreesCanvas);
-
-        //   const treesOpacityAnimationTick = (from, to) => (progress) => {
-        //     treesOpacity = from + progress * Math.sign(to - from) * Math.abs(to - from);
-        //   };
-
-        //   const treeTranslateYAnimationTick = (from, to) => (progress) => {
-        //     treeTranslateY = from + progress * Math.sign(to - from) * Math.abs(to - from);
-        //   };
-
-        //   const globalOpacityAnimationTick = async (globalProgress) => {
-        //     if (globalProgress >= 0 && treesAnimation.indexOf(`treeO`) === -1) {
-        //       treesAnimation.push(`treeO`);
-
-        //       animate.easing(treesOpacityAnimationTick(0, 1), 1000, bezierEasing(0.00, 0.0, 0.58, 1.0));
-        //     }
-        //     drawTreesCanvas();
-        //   };
-
-        //   const globalTreeTransformAnimationTick = async (globalProgress) => {
-        //     if (globalProgress >= 0 && treesAnimation.indexOf(`treeT`) === -1) {
-        //       treesAnimation.push(`treeT`);
-
-        //       animate.easing(treeTranslateYAnimationTick(100, 0), 2000, bezierEasing(0.00, 0.0, 0.58, 1.0));
-        //     }
-        //     drawTreesCanvas();
-        //   };
-
-        //   let tree = new Image();
-        //   let tree2 = new Image();
-        //   let images = [tree, tree2];
-        //   let imagesLoadCounter = 0;
-
-        //   images.forEach((image) => {
-        //     image.onload = () => {
-        //       imagesLoadCounter = imagesLoadCounter + 1;
-
-        //       if (imagesLoadCounter === images.length) {
-        //         drawTreesCanvas();
-
-        //         animate.duration(globalOpacityAnimationTick, 1000);
-        //         // animate.duration(globalTreeTransformAnimationTick, 2000);
-        //       }
-        //     };
-        //   });
-
-        //   tree.src = `/img/tree.png`;
-        //   tree2.src = `/img/tree_2.png`;
-        // }
-
-        const calfCanvas = targetEl[0].querySelector(`#calf`);
-        if (calfCanvas.getContext) {
-          const calfContext = calfCanvas.getContext(`2d`);
-
-          let calfTranslateY = windowHeight / 2;
-          let calfRotateAngle = 20;
-
-          const rotateCalf = (angle, cx, cy) => {
-            calfContext.translate(cx, cy);
-            calfContext.rotate(angle * Math.PI / 180);
-            calfContext.translate(-cx, -cy);
-          };
-
-          const drawCalfCanvas = () => {
-            calfCanvas.width = windowWidth;
-            calfCanvas.height = windowHeight;
-
-            calfContext.clearRect(0, 0, windowWidth, windowHeight);
-
-            calfContext.save();
-
-            rotateCalf(calfRotateAngle, windowWidth / 2, windowHeight / 2);
-
-            calfContext.drawImage(iceImg, Math.round((windowWidth - sizes.ice.width) / 2), Math.round((windowHeight - sizes.ice.height) / 2 + 188 + calfTranslateY), sizes.ice.width, sizes.ice.height);
-            calfContext.drawImage(animalImg, Math.round((windowWidth - sizes.animal.width) / 2), Math.round((windowHeight - sizes.animal.height) / 2 + 100 + calfTranslateY), sizes.animal.width, sizes.animal.height);
-
-            calfContext.restore();
-          };
-
-          const calfTranslateYAnimationTick = (from, to) => (progress) => {
-            calfTranslateY = from + progress * Math.sign(to - from) * Math.abs(to - from);
-          };
-
-          const calfRotateAnimationTick = (from, to) => (progress) => {
-            calfRotateAngle = from + progress * Math.sign(to - from) * Math.abs(to - from);
-          };
-
-          let calfAnimation = [];
-
-          const globalCalfTransformAnimationTick = (globalProgress) => {
-            if (globalProgress >= 0 && calfAnimation.indexOf(`calfT`) === -1) {
-              calfAnimation.push(`calfT`);
-
-              animate.easing(calfTranslateYAnimationTick(calfTranslateY, 0), 500, bezierEasing(0.00, 0.0, 0.58, 1.0));
+              animate.easing(planeScaleAnimationTick(0, 1), 500, bezierEasing(0.00, 0.0, 0.58, 1.0));
+              animate.easing(planeRotateAnimationTick(70, 0), 2000, bezierEasing(0.00, 0.0, 0.58, 1.0));
+              animate.easing(planeTranslateXAnimationTick(planeTranslateX, 450), 2000, bezierEasing(0.00, 0.0, 0.58, 1.0));
+              animate.easing(planeTranslateYAnimationTick(planeTranslateY, -150), 2000, bezierEasing(0.00, 0.0, 0.58, 1.0));
             }
-            drawCalfCanvas();
+            drawWinCanvas();
           };
 
-          const globalCalfBounceAnimationTick = async (globalProgress) => {
-            if (globalProgress >= 0 && calfAnimation.indexOf(`calfB`) === -1) {
-              calfAnimation.push(`calfB`);
+          const globalCalfAnimationTick = async (globalProgress) => {
+            if (globalProgress >= 0 && winAnimation.indexOf(`calfT`) === -1) {
+              winAnimation.push(`calfT`);
 
+              await animate.easing(calfTranslateYAnimationTick(calfTranslateY, 0), 500, bezierEasing(0.00, 0.0, 0.58, 1.0));
               await Promise.all([
                 animate.easing(calfTranslateYAnimationTick(0, 10), 500, bezierEasing(0.42, 0.0, 0.58, 1.0)),
                 animate.easing(calfRotateAnimationTick(calfRotateAngle, -5), 500, bezierEasing(0.42, 0.0, 0.58, 1.0))
@@ -517,32 +233,78 @@ export default () => {
                 animate.easing(calfRotateAnimationTick(5, 0), 1000, bezierEasing(0.42, 0.0, 0.58, 1.0))
               ]);
             }
-
-            drawCalfCanvas();
+            drawWinCanvas();
           };
 
-          window.addEventListener(`resize`, drawCalfCanvas);
+          const globalLeftFlakeTransformAnimationTick = async (globalProgress) => {
+            if (globalProgress === 0) {
+              await animate.easing(flakeLeftTranslateYAnimationTick(flakeLeftTranslateY, 0), 1000, bezierEasing(0.00, 0.0, 0.58, 1.0));
 
+              await animate.easing(flakeLeftTranslateYAnimationTick(flakeLeftTranslateY, -50), 1000, bezierEasing(0.00, 0.0, 0.58, 1.0));
+
+              await animate.duration(globalLeftFlakeTransformAnimationTick, 2000);
+            }
+
+            drawWinCanvas();
+          };
+
+          const globalRightFlakeTransformAnimationTick = async (globalProgress) => {
+            if (globalProgress === 0) {
+              await animate.easing(flakeRightTranslateYAnimationTick(flakeRightTranlateY, 0), 1000, bezierEasing(0.00, 0.0, 0.58, 1.0));
+
+              await animate.easing(flakeRightTranslateYAnimationTick(0, 20), 1000, bezierEasing(0.00, 0.0, 0.58, 1.0));
+
+              await animate.duration(globalRightFlakeTransformAnimationTick, 2000);
+            }
+
+            drawWinCanvas();
+          };
+
+          let backImg = new Image();
+          let tree = new Image();
+          let tree2 = new Image();
+          let planeImg = new Image();
           let iceImg = new Image();
           let animalImg = new Image();
-          let images = [iceImg, animalImg];
+          let flakeLeft = new Image();
+          let flakeRight = new Image();
+          let images = [
+            tree,
+            tree2,
+            backImg,
+            planeImg,
+            iceImg,
+            animalImg,
+            flakeLeft,
+            flakeRight,
+          ];
           let imagesLoadCounter = 0;
 
           images.forEach((image) => {
-            image.onload = async () => {
+            image.onload = () => {
               imagesLoadCounter = imagesLoadCounter + 1;
 
               if (imagesLoadCounter === images.length) {
-                drawCalfCanvas();
+                drawWinCanvas();
 
-                await animate.duration(globalCalfTransformAnimationTick, 500);
-                await animate.duration(globalCalfBounceAnimationTick, 4500);
+                animate.duration(globalWinOpacityAnimationTick, 1000);
+                animate.duration(globalTressAnimationTick, 2500);
+                animate.duration(globalPlaneAnimationTick, 3000);
+                animate.duration(globalCalfAnimationTick, 5000);
+                animate.duration(globalLeftFlakeTransformAnimationTick, 2000);
+                animate.duration(globalRightFlakeTransformAnimationTick, 2000);
               }
             };
           });
 
-          iceImg.src = `/img/ice.png`;
-          animalImg.src = `/img/sea-calf-2.png`;
+          planeImg.src = `/img/airplane.png`;
+          backImg.src = `./img/back.png`;
+          tree.src = `./img/tree.png`;
+          tree2.src = `./img/tree_2.png`;
+          iceImg.src = `./img/ice.png`;
+          animalImg.src = `./img/sea-calf-2.png`;
+          flakeLeft.src = `./img/snowflake.png`;
+          flakeRight.src = `./img/snowflake-r.png`;
         }
       });
     }
