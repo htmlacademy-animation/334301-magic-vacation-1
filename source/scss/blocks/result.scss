@@ -34,6 +34,34 @@
   align-items: center;
   z-index: -1;
 
+  canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  #back {
+    z-index: 6;
+  }
+
+  #trees {
+    z-index: 7;
+  }
+
+  #plane {
+    z-index: 8;
+  }
+
+  #calf {
+    z-index: 9;
+  }
+
+  #snowflakes {
+    z-index: 10;
+  }
+
   @media (orientation: portrait) {
     left: -1rem;
     right: -1rem;

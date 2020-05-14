@@ -1,5 +1,5 @@
 export default class AnimatedFrame {
-  constructor(drawAnimation, fpsInterval, needTimeValue = false) {
+  constructor(drawAnimation, fpsInterval = (1000 / 60), needTimeValue = false) {
     this.drawAnimation = drawAnimation;
     this.fpsInterval = fpsInterval;
     this.needTimeValue = needTimeValue;
