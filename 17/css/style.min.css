@@ -2322,16 +2322,6 @@ img {
     left: 0;
     width: 100%;
     height: 100%; }
-  .result__image #back {
-    z-index: 6; }
-  .result__image #trees {
-    z-index: 7; }
-  .result__image #plane {
-    z-index: 8; }
-  .result__image #calf {
-    z-index: 9; }
-  .result__image #snowflakes {
-    z-index: 10; }
   @media (orientation: portrait) {
     .result__image {
       left: -1rem;
