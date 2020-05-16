@@ -6,6 +6,12 @@ export default () => {
   const sliderContainer = document.getElementById(`story`);
   const storyCanvas = sliderContainer.querySelector(`#storyCanvas`);
   let storyBackground = null;
+  const scenes = [
+    `img/scene-1.png`,
+    `img/scene-2.png`,
+    `img/scene-3.png`,
+    `img/scene-4.png`,
+  ];
 
   class StoryBackground {
     constructor(parentCanvas) {
@@ -44,12 +50,46 @@ export default () => {
       const planeWidth = 2048;
       const planeHeight = 1024;
       const planeGeometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
-      const planeMaterials = [
-        new THREE.MeshBasicMaterial({map: loader.load(`img/scene-1.png`)}),
-        new THREE.MeshBasicMaterial({map: loader.load(`img/scene-2.png`)}),
-        new THREE.MeshBasicMaterial({map: loader.load(`img/scene-3.png`)}),
-        new THREE.MeshBasicMaterial({map: loader.load(`img/scene-4.png`)}),
-      ];
+      const planeMaterials = scenes.map((scene) => {
+        return new THREE.RawShaderMaterial(
+            {
+              uniforms: {
+                map: {
+                  value: loader.load(scene)
+                },
+              },
+              vertexShader: `
+              uniform mat4 projectionMatrix;
+              uniform mat4 modelMatrix;
+              uniform mat4 viewMatrix;
+
+              attribute vec3 position;
+              attribute vec3 normal;
+              attribute vec2 uv;
+
+              varying vec2 vUv;
+
+              void main() {
+                vUv = uv;
+
+                gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4( position, 1.0 );
+              }`,
+
+              fragmentShader: `
+              precision mediump float;
+
+              uniform sampler2D map;
+
+              varying vec2 vUv;
+
+              void main() {
+                vec4 texel = texture2D( map, vUv );
+
+                gl_FragColor = texel;
+              }`
+            }
+        );
+      });
 
       loadManager.onLoad = () => {
         planeMaterials.forEach((material, index) => {
