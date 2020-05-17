@@ -264,7 +264,7 @@
       display: block;
       transform: scaleX(0);
       left: 0;
-      transform-origin: 0 0;
+      transform-origin: bottom right;
 
       transition: opacity 0.3s ease-in-out, background-color 0.3s ease-in-out, transform 0.3s ease-in-out;
 
@@ -287,6 +287,8 @@
 
         opacity: 1;
         transform: scaleX(1);
+
+        transform-origin: bottom left;
       }
     }
 
@@ -300,6 +302,8 @@
         background-color: $c-purple;
 
         transform: scaleX(1);
+
+        transform-origin: bottom left;
       }
     }
   }
