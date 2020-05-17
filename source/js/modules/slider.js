@@ -25,8 +25,41 @@ export default () => {
       this.main = this.main.bind(this);
       this.render = this.render.bind(this);
       this.resizeRendererToDisplaySize = this.resizeRendererToDisplaySize.bind(this);
+      this.prepareImageColorMatrix = this.prepareImageColorMatrix.bind(this);
       this.makeInstance = this.makeInstance.bind(this);
       this.stopBackground = this.stopBackground.bind(this);
+    }
+
+    prepareImageColorMatrix(filterType = ``, value = 0) {
+      const colorFilter = new THREE.Matrix4();
+
+      switch (filterType) {
+        case `hue`:
+          const rotation = (value / 180) * Math.PI;
+          const cos = Math.cos(rotation);
+          const sin = Math.sin(rotation);
+          const lumR = 0.213;
+          const lumG = 0.715;
+          const lumB = 0.072;
+
+          colorFilter.set(
+              lumR + cos * (1 - lumR) + sin * (-lumR), lumG + cos * (-lumG) + sin * (-lumG), lumB + cos * (-lumB) + sin * (1 - lumB), 0,
+              lumR + cos * (-lumR) + sin * (0.143), lumG + cos * (1 - lumG) + sin * (0.140), lumB + cos * (-lumB) + sin * (-0.283), 0,
+              lumR + cos * (-lumR) + sin * (-(1 - lumR)), lumG + cos * (-lumG) + sin * (lumG), lumB + cos * (1 - lumB) + sin * (lumB), 0,
+              0, 0, 0, 1
+          );
+          break;
+
+        default:
+          colorFilter.set(
+              1, 0, 0, 0,
+              0, 1, 0, 0,
+              0, 0, 1, 0,
+              0, 0, 0, 1
+          );
+      }
+
+      return colorFilter;
     }
 
     main() {
@@ -50,12 +83,17 @@ export default () => {
       const planeWidth = 2048;
       const planeHeight = 1024;
       const planeGeometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
+
       const planeMaterials = scenes.map((scene, index) => {
         return new THREE.RawShaderMaterial(
             {
               uniforms: {
                 map: {
                   value: loader.load(scene)
+                },
+                filterMatrix: {
+                  type: `m4`,
+                  value: index === 1 ? this.prepareImageColorMatrix(`hue`, 10) : this.prepareImageColorMatrix(),
                 },
               },
               vertexShader: `
@@ -79,29 +117,14 @@ export default () => {
               precision mediump float;
 
               uniform sampler2D map;
+              uniform mat4 filterMatrix;
 
               varying vec2 vUv;
 
               void main() {
                 vec4 texel = texture2D( map, vUv );
 
-                float aDeg = float(340);
-                float aRad = radians(aDeg);
-
-                float cos = cos(aRad);
-                float sin = sin(aRad);
-                float lumR = 0.213;
-                float lumG = 0.715;
-                float lumB = 0.072;
-
-                mat4 colorMatrix = mat4(
-                  lumR + cos * (1.0 - lumR) + sin * (-lumR), lumG + cos * (-lumG) + sin * (-lumG), lumB + cos * (-lumB) + sin * (1.0 - lumB), 0,
-                  lumR + cos * (-lumR) + sin * (0.143), lumG + cos * (1.0 - lumG) + sin * (0.140), lumB + cos * (-lumB) + sin * (-0.283), 0,
-                  lumR + cos * (-lumR) + sin * (-(1.0 - lumR)), lumG + cos * (-lumG) + sin * (lumG), lumB + cos * (1.0 - lumB) + sin * (lumB), 0,
-                  0, 0, 0, 1
-                );
-
-                gl_FragColor = texel${index === 1 ? ` * colorMatrix` : ``};
+                gl_FragColor = texel * filterMatrix;
               }`
             }
         );
