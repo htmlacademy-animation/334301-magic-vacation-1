@@ -1,16 +1,31 @@
 import Swiper from "swiper";
 import * as THREE from "three";
 
+const PLANE_WIDTH = 2048;
+const PLANE_HEIGHT = 1024;
+
 export default () => {
   let storySlider;
   const sliderContainer = document.getElementById(`story`);
   const storyCanvas = sliderContainer.querySelector(`#storyCanvas`);
   let storyBackground = null;
   const scenes = [
-    `img/scene-1.png`,
-    `img/scene-2.png`,
-    `img/scene-3.png`,
-    `img/scene-4.png`,
+    {
+      src: `img/scene-1.png`,
+      hueRotation: 0,
+    },
+    {
+      src: `img/scene-2.png`,
+      hueRotation: 330,
+    },
+    {
+      src: `img/scene-3.png`,
+      hueRotation: 0,
+    },
+    {
+      src: `img/scene-4.png`,
+      hueRotation: 0,
+    },
   ];
 
   class StoryBackground {
@@ -47,20 +62,20 @@ export default () => {
       const loader = new THREE.TextureLoader(loadManager);
 
       const planes = [];
-      const planeWidth = 2048;
-      const planeHeight = 1024;
+      const planeWidth = PLANE_WIDTH;
+      const planeHeight = PLANE_HEIGHT;
       const planeGeometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
 
-      const planeMaterials = scenes.map((scene, index) => {
+      const planeMaterials = scenes.map((scene) => {
         return new THREE.RawShaderMaterial(
             {
               uniforms: {
                 map: {
-                  value: loader.load(scene)
+                  value: loader.load(scene.src)
                 },
-                slideIndex: {
+                hueRotation: {
                   type: `i`,
-                  value: index,
+                  value: scene.hueRotation,
                 },
               },
               vertexShader: `
@@ -84,34 +99,30 @@ export default () => {
               precision mediump float;
 
               uniform sampler2D map;
-              uniform int slideIndex;
+              uniform int hueRotation;
 
               varying vec2 vUv;
 
               void main() {
                 vec4 texel = texture2D( map, vUv );
 
-                if (slideIndex == 1) {
-                  float aDeg = float(330);
-                  float aRad = radians(aDeg);
+                float aDeg = float(hueRotation);
+                float aRad = radians(aDeg);
 
-                  float cos = cos(aRad);
-                  float sin = sin(aRad);
-                  float lumR = 0.213;
-                  float lumG = 0.715;
-                  float lumB = 0.072;
+                float cos = cos(aRad);
+                float sin = sin(aRad);
+                float lumR = 0.213;
+                float lumG = 0.715;
+                float lumB = 0.072;
 
-                  mat4 colorMatrix = mat4(
-                    lumR + cos * (1.0 - lumR) + sin * (-lumR), lumG + cos * (-lumG) + sin * (-lumG), lumB + cos * (-lumB) + sin * (1.0 - lumB), 0,
-                    lumR + cos * (-lumR) + sin * (0.143), lumG + cos * (1.0 - lumG) + sin * (0.140), lumB + cos * (-lumB) + sin * (-0.283), 0,
-                    lumR + cos * (-lumR) + sin * (-(1.0 - lumR)), lumG + cos * (-lumG) + sin * (lumG), lumB + cos * (1.0 - lumB) + sin * (lumB), 0,
-                    0, 0, 0, 1.0
-                  );
+                mat4 colorMatrix = mat4(
+                  lumR + cos * (1.0 - lumR) + sin * (-lumR), lumG + cos * (-lumG) + sin * (-lumG), lumB + cos * (-lumB) + sin * (1.0 - lumB), 0,
+                  lumR + cos * (-lumR) + sin * (0.143), lumG + cos * (1.0 - lumG) + sin * (0.140), lumB + cos * (-lumB) + sin * (-0.283), 0,
+                  lumR + cos * (-lumR) + sin * (-(1.0 - lumR)), lumG + cos * (-lumG) + sin * (lumG), lumB + cos * (1.0 - lumB) + sin * (lumB), 0,
+                  0, 0, 0, 1.0
+                );
 
-                  gl_FragColor = texel * colorMatrix;
-                } else {
-                  gl_FragColor = texel;
-                }
+                gl_FragColor = texel * colorMatrix;
               }`
             }
         );
@@ -141,7 +152,7 @@ export default () => {
       const plane = new THREE.Mesh(geometry, material);
       this.scene.add(plane);
 
-      plane.position.x = 2048 * x;
+      plane.position.x = PLANE_WIDTH * x;
 
       return plane;
     }
