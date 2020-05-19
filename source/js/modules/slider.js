@@ -112,7 +112,7 @@ export default () => {
 
               varying vec2 vUv;
 
-              float circle(in vec2 st, in float radius, in float offsetX, in float offsetY){
+              float circle(in vec2 st, in float radius, in float offsetX, in float offsetY) {
                 vec2 dist = st - vec2(0. + offsetX, 0. + offsetY);
 
                 return 1. - smoothstep(
@@ -120,11 +120,26 @@ export default () => {
                   radius+(radius * 1.),
                   dot(dist, dist) * 4.
                 );
-            }
+              }
+
+              vec3 circleShift(in float circle) {
+                if (circle > .0) {
+                  vec2 shift = -1.0 * normalize(vec2(circle, circle)) * 0.005;
+                  float border;
+
+                  if (circle < 0.0001) {
+                    border = 1.0;
+                  }
+
+                  return vec3(shift, border);
+                }
+              }
 
               void main() {
                 vec4 texel;
                 vec2 st = gl_FragCoord.xy/vec2(uResolution.y, uResolution.y);
+                vec2 shift;
+                vec4 border;
 
                 float aDeg = float(hueRotation);
                 float aRad = radians(aDeg);
@@ -147,50 +162,27 @@ export default () => {
                   float circleB = circle(st, 0.45, 3., 2.5);
                   float circleC = circle(st, 0.4, 5.5, 1.);
                   float circleD = circle(st, 0.2, 7., 2.);
-                  vec2 shift;
-                  vec4 border;
 
                   if (circleA > .0 || circleB > .0 || circleC > .0 || circleD > .0) {
-                    if (circleA > .0) {
-                      shift = -1.0 * normalize(vec2(circleA, circleA)) * 0.005;
+                    vec3 aCircleShift = circleShift(circleA);
+                    shift =  aCircleShift.xy;
+                    border = vec4(aCircleShift.z);
 
-                      if (circleA < 0.0001) {
-                        border = vec4(1.);
-                      }
-                    }
+                    vec3 bCircleShift = circleShift(circleB);
+                    shift =  bCircleShift.xy;
+                    border = vec4(bCircleShift.z);
 
-                    if (circleB > .0) {
-                      shift = -1.0 * normalize(vec2(-circleB, circleB)) * 0.005;
+                    vec3 cCircleShift = circleShift(circleC);
+                    shift =  cCircleShift.xy;
+                    border = vec4(cCircleShift.z);
 
-
-                      if (circleB < 0.0001) {
-                        border = vec4(1.);
-                      }
-                    }
-
-                    if (circleC > .0) {
-                      shift = -1.0 * normalize(vec2(-circleC, circleC)) * 0.005;
-
-
-                      if (circleC < 0.0001) {
-                        border = vec4(1.);
-                      }
-                    }
-
-                    if (circleD > .0) {
-                      shift = -1.0 * normalize(vec2(-circleD, circleD)) * 0.005;
-
-
-                      if (circleD < 0.0001) {
-                        border = vec4(1.);
-                      }
-                    }
+                    vec3 dCircleShift = circleShift(circleD);
+                    shift =  dCircleShift.xy;
+                    border = vec4(dCircleShift.z);
                   }
-
-                  texel = texture2D( map, vUv + shift) + border;
-                } else {
-                  texel = texture2D( map, vUv );
                 }
+
+                texel = texture2D( map, vUv + shift) + border;
 
                 gl_FragColor = texel * colorMatrix;
               }`
