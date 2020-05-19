@@ -34,7 +34,7 @@ export default () => {
       this.renderer = null;
       this.camera = null;
       this.scene = null;
-      this.planes = [];
+      this.objects = {};
       this.animationId = null;
 
       this.main = this.main.bind(this);
@@ -61,21 +61,28 @@ export default () => {
       const loadManager = new THREE.LoadingManager();
       const loader = new THREE.TextureLoader(loadManager);
 
-      const planes = [];
       const planeWidth = PLANE_WIDTH;
       const planeHeight = PLANE_HEIGHT;
       const planeGeometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
 
-      const planeMaterials = scenes.map((scene) => {
+      const planeMaterials = scenes.map((scene, index) => {
         return new THREE.RawShaderMaterial(
             {
               uniforms: {
                 map: {
                   value: loader.load(scene.src)
                 },
+                slideIndex: {
+                  type: `i`,
+                  value: index,
+                },
                 hueRotation: {
                   type: `i`,
                   value: scene.hueRotation,
+                },
+                uResolution: {
+                  type: `v2`,
+                  value: new THREE.Vector2(window.innerWidth, window.innerHeight),
                 },
               },
               vertexShader: `
@@ -100,11 +107,24 @@ export default () => {
 
               uniform sampler2D map;
               uniform int hueRotation;
+              uniform vec2 uResolution;
+              uniform int slideIndex;
 
               varying vec2 vUv;
 
+              float circle(in vec2 st, in float radius, in float offsetX, in float offsetY){
+                vec2 dist = st - vec2(0. + offsetX, 0. + offsetY);
+
+                return 1. - smoothstep(
+                  radius - (radius * 1.),
+                  radius+(radius * 1.),
+                  dot(dist, dist) * 4.
+                );
+            }
+
               void main() {
-                vec4 texel = texture2D( map, vUv );
+                vec4 texel;
+                vec2 st = gl_FragCoord.xy/vec2(uResolution.y, uResolution.y);
 
                 float aDeg = float(hueRotation);
                 float aRad = radians(aDeg);
@@ -122,6 +142,56 @@ export default () => {
                   0, 0, 0, 1.0
                 );
 
+                if (slideIndex == 1) {
+                  float circleA = circle(st, 0.3, 1.5, 1.5);
+                  float circleB = circle(st, 0.45, 3., 2.5);
+                  float circleC = circle(st, 0.4, 5.5, 1.);
+                  float circleD = circle(st, 0.2, 7., 2.);
+                  vec2 shift;
+                  vec4 border;
+
+                  if (circleA > .0 || circleB > .0 || circleC > .0 || circleD > .0) {
+                    if (circleA > .0) {
+                      shift = -1.0 * normalize(vec2(circleA, circleA)) * 0.005;
+
+                      if (circleA < 0.0001) {
+                        border = vec4(1.);
+                      }
+                    }
+
+                    if (circleB > .0) {
+                      shift = -1.0 * normalize(vec2(-circleB, circleB)) * 0.005;
+
+
+                      if (circleB < 0.0001) {
+                        border = vec4(1.);
+                      }
+                    }
+
+                    if (circleC > .0) {
+                      shift = -1.0 * normalize(vec2(-circleC, circleC)) * 0.005;
+
+
+                      if (circleC < 0.0001) {
+                        border = vec4(1.);
+                      }
+                    }
+
+                    if (circleD > .0) {
+                      shift = -1.0 * normalize(vec2(-circleD, circleD)) * 0.005;
+
+
+                      if (circleD < 0.0001) {
+                        border = vec4(1.);
+                      }
+                    }
+                  }
+
+                  texel = texture2D( map, vUv + shift) + border;
+                } else {
+                  texel = texture2D( map, vUv );
+                }
+
                 gl_FragColor = texel * colorMatrix;
               }`
             }
@@ -129,8 +199,9 @@ export default () => {
       });
 
       loadManager.onLoad = () => {
+        this.objects.planes = [];
         planeMaterials.forEach((material, index) => {
-          planes.push(this.makeInstance(planeGeometry, material, index));
+          this.objects.planes.push(this.makeInstance(planeGeometry, material, index));
         });
       };
 
