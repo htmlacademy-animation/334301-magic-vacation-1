@@ -140,7 +140,7 @@ export default () => {
                     border = 1.0;
                   }
 
-                  if ( bubble > 0.48 && bubble < 0.50 && st.x - offsetX > -0.3 && st.x - offsetX < -0.1 && st.y - offsetY > 0.1 && st.y - offsetY < 0.3) {
+                  if ( bubble > 0.49 && bubble < 0.50 && st.x - offsetX > -0.3 && st.x - offsetX < -0.1 && st.y - offsetY > 0.1 && st.y - offsetY < 0.3) {
                     shine = 1.0;
                   }
 
