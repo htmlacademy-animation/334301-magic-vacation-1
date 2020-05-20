@@ -62590,18 +62590,29 @@ const PLANE_HEIGHT = 1024;
                   0, 0, 0, 1.0
                 );
 
+                texel = texture2D(map, vUv);
+
                 if (uSlideIndex == 1) {
-                  float bubbleA = bubble(st, 0.08, 0.5, 1.);
-                  float bubbleB = bubble(st, 0.08, 1.6, 0.4);
-                  float bubbleC = bubble(st, 0.1, 2.6, 0.8);
-                  float bubbleD = bubble(st, 0.07, 3.4, 0.9);
+                  mat4 bubblesMatrix = mat4(
+                    0.08, 0.5, 1.0, 0,
+                    0.08, 1.6, 0.4, 0,
+                    0.1, 2.6, 0.8, 0,
+                    0.07, 3.4, 0.9, 0
+                  );
 
-                  if (bubbleA > .0 || bubbleB > .0 || bubbleC > .0 || bubbleD > .0) {
-                    visual = bubbleVisual(bubbleA, st, 0.5, 1.) + bubbleVisual(bubbleB, st, 1.6, 0.4) + bubbleVisual(bubbleC, st, 2.6, 0.8) + bubbleVisual(bubbleD, st, 3.4, 0.9);
+                  for(int i=0; i < int(4); ++i) {
+                    float currentBubble = bubble(st, bubblesMatrix[i].x, bubblesMatrix[i].y, bubblesMatrix[i].z);
+
+                    if (currentBubble > .0) {
+                      visual = bubbleVisual(currentBubble, st, bubblesMatrix[i].y, bubblesMatrix[i].z);
+                      shift =  vec2(visual.r, visual.g);
+                      border = vec4(visual.b);
+                      shine = vec4(visual.a);
+                    }
                   }
-                }
 
-                texel = texture2D( map, vUv + vec2(visual.r, visual.g)) + vec4(visual.b) + vec4(visual.a);
+                  texel = texture2D(map, vUv + shift) + border + shine;
+                }
 
                 gl_FragColor = texel * colorMatrix;
               }`
@@ -62643,6 +62654,14 @@ const PLANE_HEIGHT = 1024;
       if (this.resizeRendererToDisplaySize()) {
         const canvasElement = this.renderer.domElement;
         this.camera.aspect = canvasElement.clientWidth / canvasElement.clientHeight;
+
+        if (this.objects.planes && this.objects.planes.length > 0) {
+          this.objects.planes.forEach((plane) => {
+            plane.material.uniforms.uResolution.value = new three__WEBPACK_IMPORTED_MODULE_1__["Vector2"](window.innerWidth, window.innerHeight);
+            plane.material.uniformsNeedUpdate = true;
+          });
+        }
+
         this.camera.updateProjectionMatrix();
       }
 
