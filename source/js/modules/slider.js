@@ -112,7 +112,7 @@ export default () => {
 
               varying vec2 vUv;
 
-              float circle(in vec2 st, in float radius, in float offsetX, in float offsetY) {
+              float bubble(in vec2 st, in float radius, in float offsetX, in float offsetY) {
                 vec2 dist = st - vec2(0. + offsetX, 0. + offsetY);
 
                 return 1. - smoothstep(
@@ -122,24 +122,33 @@ export default () => {
                 );
               }
 
-              vec3 circleShift(in float circle) {
-                if (circle > .0) {
-                  vec2 shift = -1.0 * normalize(vec2(circle, circle)) * 0.005;
+              vec4 bubbleVisual(in float bubble, in vec2 st, in float offsetX, in float offsetY) {
+                if (bubble > .0) {
                   float border;
+                  float shine;
+                  vec2 dist = st - vec2(0. + offsetX, 0. + offsetY);
+                  vec2 shift = -1.0 * normalize(vec2(bubble, bubble)) * 0.005;
 
-                  if (circle < 0.0001) {
+                  if (bubble < 0.0001) {
                     border = 1.0;
                   }
 
-                  return vec3(shift, border);
+                  if ( bubble > 0.49 && bubble < 0.50 && dist.x > -0.11 && dist.x < -0.03 && dist.y > 0. && dist.y < 0.3) {
+                    shine = 1.0;
+                  }
+
+                  return vec4(shift, border, shine);
                 }
               }
 
               void main() {
                 vec4 texel;
-                vec2 st = gl_FragCoord.xy/vec2(uResolution.y, uResolution.y);
-                vec2 shift;
+                vec4 visual;
                 vec4 border;
+                vec4 shine;
+                vec2 shift;
+
+                vec2 st = gl_FragCoord.xy/vec2(uResolution.x, uResolution.x);
 
                 float aDeg = float(hueRotation);
                 float aRad = radians(aDeg);
@@ -158,31 +167,35 @@ export default () => {
                 );
 
                 if (slideIndex == 1) {
-                  float circleA = circle(st, 0.3, 1.5, 1.5);
-                  float circleB = circle(st, 0.45, 3., 2.5);
-                  float circleC = circle(st, 0.4, 5.5, 1.);
-                  float circleD = circle(st, 0.2, 7., 2.);
+                  float bubbleA = bubble(st, 0.08, 0.5, 1.);
+                  float bubbleB = bubble(st, 0.08, 1.6, 0.4);
+                  float bubbleC = bubble(st, 0.1, 2.6, 0.8);
+                  float bubbleD = bubble(st, 0.07, 3.4, 0.9);
 
-                  if (circleA > .0 || circleB > .0 || circleC > .0 || circleD > .0) {
-                    vec3 aCircleShift = circleShift(circleA);
-                    shift =  aCircleShift.xy;
-                    border = vec4(aCircleShift.z);
+                  if (bubbleA > .0 || bubbleB > .0 || bubbleC > .0 || bubbleD > .0) {
+                    visual = bubbleVisual(bubbleA, st, 0.5, 1.);
+                    shift =  vec2(visual.r, visual.g);
+                    border = vec4(visual.b);
+                    shine = vec4(visual.a);
 
-                    vec3 bCircleShift = circleShift(circleB);
-                    shift =  bCircleShift.xy;
-                    border = vec4(bCircleShift.z);
+                    visual = bubbleVisual(bubbleB, st, 1.6, 0.4);
+                    shift =  vec2(visual.r, visual.g);
+                    border = vec4(visual.b);
+                    shine = vec4(visual.a);
 
-                    vec3 cCircleShift = circleShift(circleC);
-                    shift =  cCircleShift.xy;
-                    border = vec4(cCircleShift.z);
+                    visual = bubbleVisual(bubbleC, st, 2.6, 0.8);
+                    shift =  vec2(visual.r, visual.g);
+                    border = vec4(visual.b);
+                    shine = vec4(visual.a);
 
-                    vec3 dCircleShift = circleShift(circleD);
-                    shift =  dCircleShift.xy;
-                    border = vec4(dCircleShift.z);
+                    visual = bubbleVisual(bubbleD, st, 3.4, 0.9);
+                    shift =  vec2(visual.r, visual.g);
+                    border = vec4(visual.b);
+                    shine = vec4(visual.a);
                   }
                 }
 
-                texel = texture2D( map, vUv + shift) + border;
+                texel = texture2D( map, vUv + shift) + border + shine;
 
                 gl_FragColor = texel * colorMatrix;
               }`
