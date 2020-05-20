@@ -179,6 +179,8 @@ export default () => {
                   0, 0, 0, 1.0
                 );
 
+                texel = texture2D(map, vUv);
+
                 if (uSlideIndex == 1) {
                   float bubbleA = bubble(st, 0.08, 0.5, 1.);
                   float bubbleB = bubble(st, 0.08, 1.6, 0.4);
@@ -186,11 +188,29 @@ export default () => {
                   float bubbleD = bubble(st, 0.07, 3.4, 0.9);
 
                   if (bubbleA > .0 || bubbleB > .0 || bubbleC > .0 || bubbleD > .0) {
-                    visual = bubbleVisual(bubbleA, st, 0.5, 1.) + bubbleVisual(bubbleB, st, 1.6, 0.4) + bubbleVisual(bubbleC, st, 2.6, 0.8) + bubbleVisual(bubbleD, st, 3.4, 0.9);
+                    visual = bubbleVisual(bubbleA, st, 0.5, 1.);
+                    shift =  vec2(visual.r, visual.g);
+                    border = vec4(visual.b);
+                    shine = vec4(visual.a);
+
+                    visual = bubbleVisual(bubbleB, st, 1.6, 0.4);
+                    shift =  vec2(visual.r, visual.g);
+                    border = vec4(visual.b);
+                    shine = vec4(visual.a);
+
+                    visual = bubbleVisual(bubbleC, st, 2.6, 0.8);
+                    shift =  vec2(visual.r, visual.g);
+                    border = vec4(visual.b);
+                    shine = vec4(visual.a);
+
+                    visual = bubbleVisual(bubbleD, st, 3.4, 0.9);
+                    shift =  vec2(visual.r, visual.g);
+                    border = vec4(visual.b);
+                    shine = vec4(visual.a);
+
+                    texel = texture2D(map, vUv + shift) + border + shine;
                   }
                 }
-
-                texel = texture2D( map, vUv + vec2(visual.r, visual.g)) + vec4(visual.b) + vec4(visual.a);
 
                 gl_FragColor = texel * colorMatrix;
               }`
@@ -232,6 +252,12 @@ export default () => {
       if (this.resizeRendererToDisplaySize()) {
         const canvasElement = this.renderer.domElement;
         this.camera.aspect = canvasElement.clientWidth / canvasElement.clientHeight;
+
+        this.objects.planes.forEach((plane) => {
+          plane.material.uniforms.uResolution.value = new THREE.Vector2(window.innerWidth, window.innerHeight);
+          plane.material.uniformsNeedUpdate = true;
+        });
+
         this.camera.updateProjectionMatrix();
       }
 
