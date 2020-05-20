@@ -182,34 +182,25 @@ export default () => {
                 texel = texture2D(map, vUv);
 
                 if (uSlideIndex == 1) {
-                  float bubbleA = bubble(st, 0.08, 0.5, 1.);
-                  float bubbleB = bubble(st, 0.08, 1.6, 0.4);
-                  float bubbleC = bubble(st, 0.1, 2.6, 0.8);
-                  float bubbleD = bubble(st, 0.07, 3.4, 0.9);
+                  mat4 bubblesMatrix = mat4(
+                    0.08, 0.5, 1.0, 0,
+                    0.08, 1.6, 0.4, 0,
+                    0.1, 2.6, 0.8, 0,
+                    0.07, 3.4, 0.9, 0
+                  );
 
-                  if (bubbleA > .0 || bubbleB > .0 || bubbleC > .0 || bubbleD > .0) {
-                    visual = bubbleVisual(bubbleA, st, 0.5, 1.);
-                    shift =  vec2(visual.r, visual.g);
-                    border = vec4(visual.b);
-                    shine = vec4(visual.a);
+                  for(int i=0; i < int(4); ++i) {
+                    float currentBubble = bubble(st, bubblesMatrix[i].x, bubblesMatrix[i].y, bubblesMatrix[i].z);
 
-                    visual = bubbleVisual(bubbleB, st, 1.6, 0.4);
-                    shift =  vec2(visual.r, visual.g);
-                    border = vec4(visual.b);
-                    shine = vec4(visual.a);
-
-                    visual = bubbleVisual(bubbleC, st, 2.6, 0.8);
-                    shift =  vec2(visual.r, visual.g);
-                    border = vec4(visual.b);
-                    shine = vec4(visual.a);
-
-                    visual = bubbleVisual(bubbleD, st, 3.4, 0.9);
-                    shift =  vec2(visual.r, visual.g);
-                    border = vec4(visual.b);
-                    shine = vec4(visual.a);
-
-                    texel = texture2D(map, vUv + shift) + border + shine;
+                    if (currentBubble > .0) {
+                      visual = bubbleVisual(currentBubble, st, bubblesMatrix[i].y, bubblesMatrix[i].z);
+                      shift =  vec2(visual.r, visual.g);
+                      border = vec4(visual.b);
+                      shine = vec4(visual.a);
+                    }
                   }
+
+                  texel = texture2D(map, vUv + shift) + border + shine;
                 }
 
                 gl_FragColor = texel * colorMatrix;
@@ -253,10 +244,12 @@ export default () => {
         const canvasElement = this.renderer.domElement;
         this.camera.aspect = canvasElement.clientWidth / canvasElement.clientHeight;
 
-        this.objects.planes.forEach((plane) => {
-          plane.material.uniforms.uResolution.value = new THREE.Vector2(window.innerWidth, window.innerHeight);
-          plane.material.uniformsNeedUpdate = true;
-        });
+        if (this.objects.planes && this.objects.planes.length > 0) {
+          this.objects.planes.forEach((plane) => {
+            plane.material.uniforms.uResolution.value = new THREE.Vector2(window.innerWidth, window.innerHeight);
+            plane.material.uniformsNeedUpdate = true;
+          });
+        }
 
         this.camera.updateProjectionMatrix();
       }
