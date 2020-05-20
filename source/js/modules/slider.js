@@ -122,39 +122,33 @@ export default () => {
                 );
               }
 
-              vec2 bubbleInnerShift(in float bubble) {
-                if (bubble > .0) {
-                  vec2 shift = -1.0 * normalize(vec2(bubble, bubble)) * 0.005;
-
-                  return shift;
-                }
-              }
-
-              vec2 bubbleVisual(in float bubble, in vec2 st, in float offsetX, in float offsetY) {
+              vec4 bubbleVisual(in float bubble, in vec2 st, in float offsetX, in float offsetY) {
                 if (bubble > .0) {
                   float border;
                   float shine;
                   vec2 dist = st - vec2(0. + offsetX, 0. + offsetY);
+                  vec2 shift = -1.0 * normalize(vec2(bubble, bubble)) * 0.005;
 
                   if (bubble < 0.0001) {
                     border = 1.0;
                   }
 
-                  if ( bubble > 0.49 && bubble < 0.50 && st.x - offsetX > -0.3 && st.x - offsetX < -0.1 && st.y - offsetY > 0.1 && st.y - offsetY < 0.3) {
+                  if ( bubble > 0.49 && bubble < 0.50 && st.x - offsetX > -0.11 && st.x - offsetX < -0.03 && st.y - offsetY > 0. && st.y - offsetY < 0.3) {
                     shine = 1.0;
                   }
 
-                  return vec2(border, shine);
+                  return vec4(shift, border, shine);
                 }
               }
 
               void main() {
                 vec4 texel;
-                vec2 st = gl_FragCoord.xy/vec2(uResolution.y, uResolution.y);
-                vec2 shift;
-                vec2 visual;
+                vec4 visual;
                 vec4 border;
                 vec4 shine;
+                vec2 shift;
+
+                vec2 st = gl_FragCoord.xy/vec2(uResolution.x, uResolution.x);
 
                 float aDeg = float(hueRotation);
                 float aRad = radians(aDeg);
@@ -173,31 +167,31 @@ export default () => {
                 );
 
                 if (slideIndex == 1) {
-                  float bubbleA = bubble(st, 0.3, 1.5, 1.5);
-                  float bubbleB = bubble(st, 0.45, 3., 2.5);
-                  float bubbleC = bubble(st, 0.4, 5.5, 1.);
-                  float bubbleD = bubble(st, 0.2, 7., 2.);
+                  float bubbleA = bubble(st, 0.08, 0.5, 1.);
+                  float bubbleB = bubble(st, 0.08, 1.6, 0.4);
+                  float bubbleC = bubble(st, 0.1, 2.6, 0.8);
+                  float bubbleD = bubble(st, 0.07, 3.4, 0.9);
 
                   if (bubbleA > .0 || bubbleB > .0 || bubbleC > .0 || bubbleD > .0) {
-                    shift =  bubbleInnerShift(bubbleA);
-                    visual = bubbleVisual(bubbleA, st, 1.5, 1.5);
-                    border = vec4(visual.x);
-                    shine = vec4(visual.y);
+                    visual = bubbleVisual(bubbleA, st, 0.5, 1.);
+                    shift =  vec2(visual.r, visual.g);
+                    border = vec4(visual.b);
+                    shine = vec4(visual.a);
 
-                    shift =  bubbleInnerShift(bubbleB);
-                    visual = bubbleVisual(bubbleB, st, 3., 2.5);
-                    border = vec4(visual.x);
-                    shine = vec4(visual.y);
+                    visual = bubbleVisual(bubbleB, st, 1.6, 0.4);
+                    shift =  vec2(visual.r, visual.g);
+                    border = vec4(visual.b);
+                    shine = vec4(visual.a);
 
-                    shift =  bubbleInnerShift(bubbleC);
-                    visual = bubbleVisual(bubbleC, st, 5.5, 1.);
-                    border = vec4(visual.x);
-                    shine = vec4(visual.y);
+                    visual = bubbleVisual(bubbleC, st, 2.6, 0.8);
+                    shift =  vec2(visual.r, visual.g);
+                    border = vec4(visual.b);
+                    shine = vec4(visual.a);
 
-                    shift =  bubbleInnerShift(bubbleD);
-                    visual = bubbleVisual(bubbleD, st, 7., 2.);
-                    border = vec4(visual.x);
-                    shine = vec4(visual.y);
+                    visual = bubbleVisual(bubbleD, st, 3.4, 0.9);
+                    shift =  vec2(visual.r, visual.g);
+                    border = vec4(visual.b);
+                    shine = vec4(visual.a);
                   }
                 }
 
