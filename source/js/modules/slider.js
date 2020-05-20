@@ -1,6 +1,9 @@
 import Swiper from "swiper";
 import * as THREE from "three";
 
+import {BezierEasing as bezierEasing} from "../helpers/cubicBezier";
+import animate from '../helpers/animate-functions';
+
 const PLANE_WIDTH = 2048;
 const PLANE_HEIGHT = 1024;
 
@@ -36,12 +39,15 @@ export default () => {
       this.scene = null;
       this.objects = {};
       this.animationId = null;
+      this.toggleBlurAnimation = false;
+      this.blurCounter = 0;
 
       this.main = this.main.bind(this);
       this.render = this.render.bind(this);
       this.resizeRendererToDisplaySize = this.resizeRendererToDisplaySize.bind(this);
       this.makeInstance = this.makeInstance.bind(this);
       this.stopBackground = this.stopBackground.bind(this);
+      this.blurAnimationTick = this.blurAnimationTick.bind(this);
     }
 
     main() {
@@ -72,18 +78,22 @@ export default () => {
                 map: {
                   value: loader.load(scene.src)
                 },
-                slideIndex: {
+                uSlideIndex: {
                   type: `i`,
                   value: index,
                 },
-                hueRotation: {
-                  type: `i`,
+                uHueRotation: {
+                  type: `f`,
                   value: scene.hueRotation,
                 },
                 uResolution: {
                   type: `v2`,
                   value: new THREE.Vector2(window.innerWidth, window.innerHeight),
                 },
+                uBlurProgress: {
+                  type: `f`,
+                  value: 0.0,
+                }
               },
               vertexShader: `
               uniform mat4 projectionMatrix;
@@ -103,12 +113,15 @@ export default () => {
               }`,
 
               fragmentShader: `
+              #define PI 3.14159265359
+
               precision mediump float;
 
               uniform sampler2D map;
-              uniform int hueRotation;
+              uniform float uHueRotation;
               uniform vec2 uResolution;
-              uniform int slideIndex;
+              uniform int uSlideIndex;
+              uniform float uBlurProgress;
 
               varying vec2 vUv;
 
@@ -150,7 +163,7 @@ export default () => {
 
                 vec2 st = gl_FragCoord.xy/vec2(uResolution.x, uResolution.x);
 
-                float aDeg = float(hueRotation);
+                float aDeg = uHueRotation + (360.0 - uHueRotation) * uBlurProgress;
                 float aRad = radians(aDeg);
 
                 float cos = cos(aRad);
@@ -166,36 +179,18 @@ export default () => {
                   0, 0, 0, 1.0
                 );
 
-                if (slideIndex == 1) {
+                if (uSlideIndex == 1) {
                   float bubbleA = bubble(st, 0.08, 0.5, 1.);
                   float bubbleB = bubble(st, 0.08, 1.6, 0.4);
                   float bubbleC = bubble(st, 0.1, 2.6, 0.8);
                   float bubbleD = bubble(st, 0.07, 3.4, 0.9);
 
                   if (bubbleA > .0 || bubbleB > .0 || bubbleC > .0 || bubbleD > .0) {
-                    visual = bubbleVisual(bubbleA, st, 0.5, 1.);
-                    shift =  vec2(visual.r, visual.g);
-                    border = vec4(visual.b);
-                    shine = vec4(visual.a);
-
-                    visual = bubbleVisual(bubbleB, st, 1.6, 0.4);
-                    shift =  vec2(visual.r, visual.g);
-                    border = vec4(visual.b);
-                    shine = vec4(visual.a);
-
-                    visual = bubbleVisual(bubbleC, st, 2.6, 0.8);
-                    shift =  vec2(visual.r, visual.g);
-                    border = vec4(visual.b);
-                    shine = vec4(visual.a);
-
-                    visual = bubbleVisual(bubbleD, st, 3.4, 0.9);
-                    shift =  vec2(visual.r, visual.g);
-                    border = vec4(visual.b);
-                    shine = vec4(visual.a);
+                    visual = bubbleVisual(bubbleA, st, 0.5, 1.) + bubbleVisual(bubbleB, st, 1.6, 0.4) + bubbleVisual(bubbleC, st, 2.6, 0.8) + bubbleVisual(bubbleD, st, 3.4, 0.9);
                   }
                 }
 
-                texel = texture2D( map, vUv + shift) + border + shine;
+                texel = texture2D( map, vUv + vec2(visual.r, visual.g)) + vec4(visual.b) + vec4(visual.a);
 
                 gl_FragColor = texel * colorMatrix;
               }`
@@ -213,7 +208,27 @@ export default () => {
       requestAnimationFrame(this.render);
     }
 
+    blurAnimationTick(from, to) {
+      return (progress) => {
+        this.objects.planes[1].material.uniforms.uBlurProgress.value = from + progress * Math.sign(to - from) * Math.abs(to - from);
+
+        if (progress === 1 && this.blurCounter < 3) {
+          this.blurCounter = this.blurCounter + 1;
+
+          this.toggleBlurAnimation = true;
+        }
+
+        this.objects.planes[1].material.uniformsNeedUpdate = true;
+      };
+    }
+
     render() {
+      if (this.objects.planes && this.objects.planes.length > 0 && this.toggleBlurAnimation === true) {
+        this.toggleBlurAnimation = false;
+
+        animate.easing(this.blurAnimationTick(this.objects.planes[1].material.uniforms.uBlurProgress.value, 1 - this.objects.planes[1].material.uniforms.uBlurProgress.value), 1000, bezierEasing(0.00, 0.0, 0.58, 1.0));
+      }
+
       if (this.resizeRendererToDisplaySize()) {
         const canvasElement = this.renderer.domElement;
         this.camera.aspect = canvasElement.clientWidth / canvasElement.clientHeight;
@@ -270,10 +285,13 @@ export default () => {
         },
         on: {
           slideChange: () => {
+            storyBackground.blurCounter = 0;
+            storyBackground.toggleBlurAnimation = false;
             if (storySlider.activeIndex === 0 || storySlider.activeIndex === 1) {
               storyBackground.camera.position.x = 2048 * 0;
             } else if (storySlider.activeIndex === 2 || storySlider.activeIndex === 3) {
               storyBackground.camera.position.x = 2048 * 1;
+              storyBackground.toggleBlurAnimation = true;
             } else if (storySlider.activeIndex === 4 || storySlider.activeIndex === 5) {
               storyBackground.camera.position.x = 2048 * 2;
             } else if (storySlider.activeIndex === 6 || storySlider.activeIndex === 7) {
@@ -304,10 +322,13 @@ export default () => {
         },
         on: {
           slideChange: () => {
+            storyBackground.blurCounter = 0;
+            storyBackground.toggleBlurAnimation = false;
             if (storySlider.activeIndex === 0) {
               storyBackground.camera.position.x = 2048 * 0;
             } else if (storySlider.activeIndex === 2) {
               storyBackground.camera.position.x = 2048 * 1;
+              storyBackground.toggleBlurAnimation = true;
             } else if (storySlider.activeIndex === 4) {
               storyBackground.camera.position.x = 2048 * 2;
             } else if (storySlider.activeIndex === 6) {
