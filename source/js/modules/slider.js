@@ -54,7 +54,6 @@ export default () => {
       const canvas = this.canvas;
       this.renderer = new THREE.WebGLRenderer({canvas});
       this.renderer.setClearColor(0xEEEEEE);
-      this.renderer.setPixelRatio(window.devicePixelRatio);
 
       const fov = 2 * Math.atan(window.innerHeight / (2 * 1000)) * 180 / Math.PI;
       const aspect = window.innerWidth / window.innerHeight;
@@ -88,7 +87,7 @@ export default () => {
                 },
                 uResolution: {
                   type: `v2`,
-                  value: new THREE.Vector2(window.innerWidth, window.innerHeight),
+                  value: new THREE.Vector2(window.innerWidth / window.devicePixelRatio, window.innerHeight / window.devicePixelRatio),
                 },
                 uBlurProgress: {
                   type: `f`,
@@ -142,7 +141,7 @@ export default () => {
                   vec2 dist = st - vec2(0. + offsetX, 0. + offsetY);
                   vec2 shift = -1.0 * normalize(vec2(bubble, bubble)) * 0.005;
 
-                  if (bubble < 0.0001) {
+                  if (bubble < 0.0005) {
                     border = 1.0;
                   }
 
@@ -246,7 +245,7 @@ export default () => {
 
         if (this.objects.planes && this.objects.planes.length > 0) {
           this.objects.planes.forEach((plane) => {
-            plane.material.uniforms.uResolution.value = new THREE.Vector2(window.innerWidth, window.innerHeight);
+            plane.material.uniforms.uResolution.value = new THREE.Vector2(window.innerWidth / window.devicePixelRatio, window.innerHeight / window.devicePixelRatio);
             plane.material.uniformsNeedUpdate = true;
           });
         }
