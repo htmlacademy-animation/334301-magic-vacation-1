@@ -62552,8 +62552,8 @@ const PLANE_HEIGHT = 1024;
 
               varying vec2 vUv;
 
-              float bubble(in vec2 st, in float radius, in float offsetX, in float offsetY, in float xAmplitude) {
-                vec2 dist = st - vec2(0. + offsetX + xAmplitude * uAmplitudeModifier * sin(uTime * 5.0), 0. + offsetY * uTranslateYProgress);
+              float bubble(in vec2 st, in float radius, in float offsetX, in float offsetY, in float xAmplitude, in int bubbleIndex) {
+                vec2 dist = st - vec2(0. + offsetX + xAmplitude * float(bubbleIndex + 1) * uAmplitudeModifier * sin(uTime * 5.0), 0. + offsetY * uTranslateYProgress);
 
                 return 1. - smoothstep(
                   radius - (radius * 1.),
@@ -62562,11 +62562,12 @@ const PLANE_HEIGHT = 1024;
                 );
               }
 
-              vec4 bubbleVisual(in float bubble, in vec2 st, in float offsetX, in float offsetY, in float xAmplitude) {
+              vec4 bubbleVisual(in float bubble, in vec2 st, in float offsetX, in float offsetY, in float xAmplitude, in int bubbleIndex) {
                 if (bubble > .0) {
                   float border;
                   float shine;
-                  vec2 dist = st - vec2(0. + offsetX + xAmplitude * uAmplitudeModifier * sin(uTime * 5.0), 0. + offsetY * uTranslateYProgress);
+
+                  vec2 dist = st - vec2(0. + offsetX + xAmplitude * float(bubbleIndex + 1) * uAmplitudeModifier * sin(uTime * 5.0), 0. + offsetY * uTranslateYProgress);
                   vec2 shift = -1.0 * normalize(vec2(bubble, bubble)) * 0.005;
 
                   if (bubble < 0.0005) {
@@ -62610,17 +62611,17 @@ const PLANE_HEIGHT = 1024;
 
                 if (uSlideIndex == 1) {
                   mat4 bubblesMatrix = mat4(
-                    0.08, 0.5, 2.5, 0.1,
-                    0.08, 1.6, 2.3, 0.15,
-                    0.1, 2.6, 3.1, 0.2,
-                    0.07, 3.4, 2.9, 0.13
+                    0.04, 1.5, 4.2, 0.1,
+                    0.08, 2.0, 6.7, 0.15,
+                    0.02, 2.6, 2.4, 0.2,
+                    0, 0, 0, 0
                   );
 
-                  for(int i=0; i < int(4); ++i) {
-                    float currentBubble = bubble(st, bubblesMatrix[i].r, bubblesMatrix[i].g, bubblesMatrix[i].b, bubblesMatrix[i].a);
+                  for(int i=0; i < int(3); i++) {
+                    float currentBubble = bubble(st, bubblesMatrix[i].r, bubblesMatrix[i].g, bubblesMatrix[i].b, bubblesMatrix[i].a, i);
 
                     if (currentBubble > .0) {
-                      visual = bubbleVisual(currentBubble, st, bubblesMatrix[i].g, bubblesMatrix[i].b, bubblesMatrix[i].a);
+                      visual = bubbleVisual(currentBubble, st, bubblesMatrix[i].g, bubblesMatrix[i].b, bubblesMatrix[i].a, i);
                       shift =  vec2(visual.r, visual.g);
                       border = vec4(visual.b);
                       shine = vec4(visual.a);
@@ -62683,7 +62684,7 @@ const PLANE_HEIGHT = 1024;
         if (this.bubbleAnimation === true) {
           this.bubbleAnimation = false;
 
-          _helpers_animate_functions__WEBPACK_IMPORTED_MODULE_3__["default"].easing(this.translateYAnimationTick(-0.5, 2.0), 6000, Object(_helpers_cubicBezier__WEBPACK_IMPORTED_MODULE_2__["BezierEasing"])(0.00, 0.0, 0.58, 1.0));
+          _helpers_animate_functions__WEBPACK_IMPORTED_MODULE_3__["default"].easing(this.translateYAnimationTick(-0.5, 2.0), 16000, Object(_helpers_cubicBezier__WEBPACK_IMPORTED_MODULE_2__["BezierEasing"])(0.00, 0.0, 0.58, 1.0));
           _helpers_animate_functions__WEBPACK_IMPORTED_MODULE_3__["default"].easing(this.translateAmlitudeModifierTick(1.5, 0.0), 6000, Object(_helpers_cubicBezier__WEBPACK_IMPORTED_MODULE_2__["BezierEasing"])(0.00, 0.0, 0.58, 1.0));
         }
 
