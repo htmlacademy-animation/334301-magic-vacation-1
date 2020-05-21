@@ -40,6 +40,7 @@ export default () => {
       this.objects = {};
       this.animationId = null;
       this.toggleBlurAnimation = false;
+      this.bubbleAnimation = false;
       this.blurCounter = 0;
 
       this.main = this.main.bind(this);
@@ -48,6 +49,7 @@ export default () => {
       this.makeInstance = this.makeInstance.bind(this);
       this.stopBackground = this.stopBackground.bind(this);
       this.blurAnimationTick = this.blurAnimationTick.bind(this);
+      this.translateYAnimationTick = this.translateYAnimationTick.bind(this);
     }
 
     main() {
@@ -92,6 +94,18 @@ export default () => {
                 uBlurProgress: {
                   type: `f`,
                   value: 0.0,
+                },
+                uTranslateYProgress: {
+                  type: `f`,
+                  value: 0.0,
+                },
+                uAmplitudeModifier: {
+                  type: `f`,
+                  value: 0.0,
+                },
+                uTime: {
+                  type: `f`,
+                  value: 0.0,
                 }
               },
               vertexShader: `
@@ -121,11 +135,14 @@ export default () => {
               uniform vec2 uResolution;
               uniform int uSlideIndex;
               uniform float uBlurProgress;
+              uniform float uTranslateYProgress;
+              uniform float uTime;
+              uniform float uAmplitudeModifier;
 
               varying vec2 vUv;
 
-              float bubble(in vec2 st, in float radius, in float offsetX, in float offsetY) {
-                vec2 dist = st - vec2(0. + offsetX, 0. + offsetY);
+              float bubble(in vec2 st, in float radius, in float offsetX, in float offsetY, in float xAmplitude) {
+                vec2 dist = st - vec2(0. + offsetX + xAmplitude * uAmplitudeModifier * sin(uTime * 5.0), 0. + offsetY * uTranslateYProgress);
 
                 return 1. - smoothstep(
                   radius - (radius * 1.),
@@ -134,11 +151,11 @@ export default () => {
                 );
               }
 
-              vec4 bubbleVisual(in float bubble, in vec2 st, in float offsetX, in float offsetY) {
+              vec4 bubbleVisual(in float bubble, in vec2 st, in float offsetX, in float offsetY, in float xAmplitude) {
                 if (bubble > .0) {
                   float border;
                   float shine;
-                  vec2 dist = st - vec2(0. + offsetX, 0. + offsetY);
+                  vec2 dist = st - vec2(0. + offsetX + xAmplitude * uAmplitudeModifier * sin(uTime * 5.0), 0. + offsetY * uTranslateYProgress);
                   vec2 shift = -1.0 * normalize(vec2(bubble, bubble)) * 0.005;
 
                   if (bubble < 0.0005) {
@@ -182,17 +199,17 @@ export default () => {
 
                 if (uSlideIndex == 1) {
                   mat4 bubblesMatrix = mat4(
-                    0.08, 0.5, 1.0, 0,
-                    0.08, 1.6, 0.4, 0,
-                    0.1, 2.6, 0.8, 0,
-                    0.07, 3.4, 0.9, 0
+                    0.08, 0.5, 2.5, 0.1,
+                    0.08, 1.6, 2.3, 0.15,
+                    0.1, 2.6, 3.1, 0.2,
+                    0.07, 3.4, 2.9, 0.13
                   );
 
                   for(int i=0; i < int(4); ++i) {
-                    float currentBubble = bubble(st, bubblesMatrix[i].x, bubblesMatrix[i].y, bubblesMatrix[i].z);
+                    float currentBubble = bubble(st, bubblesMatrix[i].r, bubblesMatrix[i].g, bubblesMatrix[i].b, bubblesMatrix[i].a);
 
                     if (currentBubble > .0) {
-                      visual = bubbleVisual(currentBubble, st, bubblesMatrix[i].y, bubblesMatrix[i].z);
+                      visual = bubbleVisual(currentBubble, st, bubblesMatrix[i].g, bubblesMatrix[i].b, bubblesMatrix[i].a);
                       shift =  vec2(visual.r, visual.g);
                       border = vec4(visual.b);
                       shine = vec4(visual.a);
@@ -227,16 +244,40 @@ export default () => {
 
           this.toggleBlurAnimation = true;
         }
-
-        this.objects.planes[1].material.uniformsNeedUpdate = true;
       };
     }
 
-    render() {
-      if (this.objects.planes && this.objects.planes.length > 0 && this.toggleBlurAnimation === true) {
-        this.toggleBlurAnimation = false;
+    translateYAnimationTick(from, to) {
+      return (progress) => {
+        this.objects.planes[1].material.uniforms.uTranslateYProgress.value = from + progress * Math.sign(to - from) * Math.abs(to - from);
+      };
+    }
 
-        animate.easing(this.blurAnimationTick(this.objects.planes[1].material.uniforms.uBlurProgress.value, 1 - this.objects.planes[1].material.uniforms.uBlurProgress.value), 1000, bezierEasing(0.00, 0.0, 0.58, 1.0));
+    translateAmlitudeModifierTick(from, to) {
+      return (progress) => {
+        this.objects.planes[1].material.uniforms.uAmplitudeModifier.value = from + progress * Math.sign(to - from) * Math.abs(to - from);
+      };
+    }
+
+    render(time) {
+      time *= 0.001;
+
+      if (this.objects.planes && this.objects.planes.length > 0) {
+        if (this.toggleBlurAnimation === true) {
+          this.toggleBlurAnimation = false;
+
+          animate.easing(this.blurAnimationTick(this.objects.planes[1].material.uniforms.uBlurProgress.value, 1 - this.objects.planes[1].material.uniforms.uBlurProgress.value), 1000, bezierEasing(0.00, 0.0, 0.58, 1.0));
+        }
+
+        if (this.bubbleAnimation === true) {
+          this.bubbleAnimation = false;
+
+          animate.easing(this.translateYAnimationTick(-0.5, 2.0), 6000, bezierEasing(0.00, 0.0, 0.58, 1.0));
+          animate.easing(this.translateAmlitudeModifierTick(1.5, 0.0), 6000, bezierEasing(0.00, 0.0, 0.58, 1.0));
+        }
+
+        this.objects.planes[1].material.uniforms.uTime.value = time;
+        this.objects.planes[1].material.uniformsNeedUpdate = true;
       }
 
       if (this.resizeRendererToDisplaySize()) {
@@ -305,11 +346,13 @@ export default () => {
           slideChange: () => {
             storyBackground.blurCounter = 0;
             storyBackground.toggleBlurAnimation = false;
+            storyBackground.bubbleAnimation = false;
             if (storySlider.activeIndex === 0 || storySlider.activeIndex === 1) {
               storyBackground.camera.position.x = 2048 * 0;
             } else if (storySlider.activeIndex === 2 || storySlider.activeIndex === 3) {
               storyBackground.camera.position.x = 2048 * 1;
               storyBackground.toggleBlurAnimation = true;
+              storyBackground.bubbleAnimation = true;
             } else if (storySlider.activeIndex === 4 || storySlider.activeIndex === 5) {
               storyBackground.camera.position.x = 2048 * 2;
             } else if (storySlider.activeIndex === 6 || storySlider.activeIndex === 7) {
@@ -342,11 +385,13 @@ export default () => {
           slideChange: () => {
             storyBackground.blurCounter = 0;
             storyBackground.toggleBlurAnimation = false;
+            storyBackground.bubbleAnimation = false;
             if (storySlider.activeIndex === 0) {
               storyBackground.camera.position.x = 2048 * 0;
             } else if (storySlider.activeIndex === 2) {
               storyBackground.camera.position.x = 2048 * 1;
               storyBackground.toggleBlurAnimation = true;
+              storyBackground.bubbleAnimation = true;
             } else if (storySlider.activeIndex === 4) {
               storyBackground.camera.position.x = 2048 * 2;
             } else if (storySlider.activeIndex === 6) {
