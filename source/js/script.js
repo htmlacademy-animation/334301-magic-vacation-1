@@ -36,7 +36,7 @@ fullPageScroll.init();
 introElements.forEach((element) => element.init());
 
 
-function lightsTask() {
+const lightsTask = () => {
   const initialWidth = window.innerWidth;
   const initialHeight = window.innerHeight;
 
@@ -104,7 +104,7 @@ function lightsTask() {
     return needResize;
   };
 
-  function render() {
+  const render = () => {
     if (resizeRenderer()) {
       camera.aspect = canvas.clientWidth / canvas.clientHeight;
       camera.updateProjectionMatrix();
