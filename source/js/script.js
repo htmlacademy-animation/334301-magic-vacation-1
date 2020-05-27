@@ -199,6 +199,9 @@ class SvgTask {
       );
     });
 
+    this.resizeRenderer();
+    window.addEventListener(`resize`, this.resizeRenderer);
+
     canvasFrame.addRender(this.render);
   }
 
@@ -234,17 +237,13 @@ class SvgTask {
 
     if (needResize) {
       this.renderer.setSize(width, height, false);
-    }
-
-    return needResize;
-  }
-
-  render() {
-    if (this.resizeRenderer()) {
       this.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
       this.camera.fov = 2 * Math.atan(window.innerHeight / (2 * 1000)) * 180 / Math.PI;
       this.camera.updateProjectionMatrix();
     }
+  }
+
+  render() {
     this.controls.update();
 
     this.renderer.render(this.scene, this.camera);

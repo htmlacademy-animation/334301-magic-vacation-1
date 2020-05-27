@@ -416,6 +416,8 @@ export default () => {
         });
       };
 
+      this.resizeRendererToDisplaySize();
+      window.addEventListener(`resize`, this.resizeRendererToDisplaySize);
       canvasFrame.addRender(this.render);
     }
 
@@ -440,20 +442,6 @@ export default () => {
         this.objects.planes[1].material.uniformsNeedUpdate = true;
       }
 
-      if (this.resizeRendererToDisplaySize()) {
-        const canvasElement = this.renderer.domElement;
-        this.camera.aspect = canvasElement.clientWidth / canvasElement.clientHeight;
-
-        if (this.objects.planes && this.objects.planes.length > 0) {
-          this.objects.planes.forEach((plane) => {
-            plane.material.uniforms.uResolution.value = new THREE.Vector2(window.innerWidth / window.devicePixelRatio, window.innerHeight / window.devicePixelRatio);
-            plane.material.uniformsNeedUpdate = true;
-          });
-        }
-
-        this.camera.updateProjectionMatrix();
-      }
-
       this.renderer.render(this.scene, this.camera);
     }
 
@@ -467,6 +455,16 @@ export default () => {
 
       if (needResize) {
         this.renderer.setSize(width, height, false);
+        this.camera.aspect = canvasElement.clientWidth / canvasElement.clientHeight;
+
+        if (this.objects.planes && this.objects.planes.length > 0) {
+          this.objects.planes.forEach((plane) => {
+            plane.material.uniforms.uResolution.value = new THREE.Vector2(window.innerWidth / window.devicePixelRatio, window.innerHeight / window.devicePixelRatio);
+            plane.material.uniformsNeedUpdate = true;
+          });
+        }
+
+        this.camera.updateProjectionMatrix();
       }
 
       return needResize;
