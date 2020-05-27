@@ -3,46 +3,10 @@ import * as THREE from "three";
 
 import {BezierEasing as bezierEasing} from "../helpers/cubicBezier";
 import animate from '../helpers/animate-functions';
+import canvasFrame from './canvas-frame';
 
 const PLANE_WIDTH = 2048;
 const PLANE_HEIGHT = 1024;
-
-// Pyramid
-// const prepareLight = () => {
-//   const cameraPosition = camera.position.z;
-
-//   const light = new THREE.Group();
-
-//   const directionaLight = new THREE.DirectionalLight(new THREE.Color(`rgb(255,255,255)`), 1);
-
-//   directionaLight.position.set(cameraPosition, 0, cameraPosition);
-
-//   light.add(directionaLight);
-
-//   const directionaLight2 = new THREE.DirectionalLight(new THREE.Color(`rgb(255,255,255)`), 0.5);
-
-//   directionaLight2.position.set(-cameraPosition, 0, cameraPosition);
-
-//   light.add(directionaLight2);
-
-//   return light;
-// };
-
-// scene.add(prepareLight());
-
-// let radius = 250;
-// let pheight = 280;
-
-// let geometry = new THREE.CylinderGeometry(0, radius, pheight, 4, 1);
-// const material = new THREE.MeshPhongMaterial({color: 0x2b62c7});
-// const pyramid = new THREE.Mesh(geometry, material);
-//  scene.add(pyramid);
-
-// lattern
-
-
-// scene.add(lattern);
-
 
 export default () => {
   let storySlider;
@@ -75,7 +39,6 @@ export default () => {
       this.camera = null;
       this.scene = null;
       this.objects = {};
-      this.animationId = null;
       this.toggleBlurAnimation = false;
       this.bubbleAnimation = false;
       this.blurCounter = 0;
@@ -87,7 +50,6 @@ export default () => {
       this.makeSnowman = this.makeSnowman.bind(this);
       this.makePyramid = this.makePyramid.bind(this);
       this.makeLattern = this.makeLattern.bind(this);
-      this.stopBackground = this.stopBackground.bind(this);
       this.blurAnimationTick = this.blurAnimationTick.bind(this);
       this.translateYAnimationTick = this.translateYAnimationTick.bind(this);
     }
@@ -290,6 +252,7 @@ export default () => {
       const planeMaterials = scenes.map((scene, index) => {
         return new THREE.RawShaderMaterial(
             {
+              transparent: true,
               uniforms: {
                 map: {
                   value: loader.load(scene.src)
@@ -453,7 +416,9 @@ export default () => {
         });
       };
 
-      requestAnimationFrame(this.render);
+      this.resizeRendererToDisplaySize();
+      window.addEventListener(`resize`, this.resizeRendererToDisplaySize);
+      canvasFrame.addRender(this.render);
     }
 
     render(time) {
@@ -477,22 +442,7 @@ export default () => {
         this.objects.planes[1].material.uniformsNeedUpdate = true;
       }
 
-      if (this.resizeRendererToDisplaySize()) {
-        const canvasElement = this.renderer.domElement;
-        this.camera.aspect = canvasElement.clientWidth / canvasElement.clientHeight;
-
-        if (this.objects.planes && this.objects.planes.length > 0) {
-          this.objects.planes.forEach((plane) => {
-            plane.material.uniforms.uResolution.value = new THREE.Vector2(window.innerWidth / window.devicePixelRatio, window.innerHeight / window.devicePixelRatio);
-            plane.material.uniformsNeedUpdate = true;
-          });
-        }
-
-        this.camera.updateProjectionMatrix();
-      }
-
       this.renderer.render(this.scene, this.camera);
-      this.animationId = requestAnimationFrame(this.render);
     }
 
     resizeRendererToDisplaySize() {
@@ -505,6 +455,16 @@ export default () => {
 
       if (needResize) {
         this.renderer.setSize(width, height, false);
+        this.camera.aspect = canvasElement.clientWidth / canvasElement.clientHeight;
+
+        if (this.objects.planes && this.objects.planes.length > 0) {
+          this.objects.planes.forEach((plane) => {
+            plane.material.uniforms.uResolution.value = new THREE.Vector2(window.innerWidth / window.devicePixelRatio, window.innerHeight / window.devicePixelRatio);
+            plane.material.uniformsNeedUpdate = true;
+          });
+        }
+
+        this.camera.updateProjectionMatrix();
       }
 
       return needResize;
@@ -532,10 +492,6 @@ export default () => {
       return (progress) => {
         this.objects.planes[1].material.uniforms.uAmplitudeModifier.value = from + progress * Math.sign(to - from) * Math.abs(to - from);
       };
-    }
-
-    stopBackground() {
-      cancelAnimationFrame(this.animationId);
     }
   }
 
@@ -623,7 +579,6 @@ export default () => {
   window.addEventListener(`resize`, function () {
     if (storySlider) {
       storySlider.destroy();
-      storyBackground.stopBackground();
     }
     setSlider();
   });
