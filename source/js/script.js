@@ -117,7 +117,8 @@ class SvgTask {
 
     this.prepareLight = this.prepareLight.bind(this);
     this.prepareSvgs = this.prepareSvgs.bind(this);
-    this.prepareLathe = this.prepareLathe.bind(this);
+    this.prepareLatheTask = this.prepareLatheTask.bind(this);
+    this.createLatheRing = this.createLatheRing.bind(this);
     this.resizeRenderer = this.resizeRenderer.bind(this);
     this.render = this.render.bind(this);
     this.init = this.init.bind(this);
@@ -149,7 +150,7 @@ class SvgTask {
     this.scene = new THREE.Scene();
 
     this.scene.add(this.prepareLight());
-    this.prepareLathe();
+    this.prepareLatheTask();
     // this.prepareSvgs();
 
     this.resizeRenderer();
@@ -240,34 +241,28 @@ class SvgTask {
     });
   }
 
-  prepareLathe() {
-    const carpetPoints = [];
-    for (let i = 763; i < 943; i++) {
-      for (let j = 0; j < 3; j++) {
-        carpetPoints.push(new THREE.Vector2(i, j));
+  createLatheRing(innerRadius, outerRadios, height, segments, startingAngel, finalAngel, color) {
+    const lathePoints = [];
+    for (let i = innerRadius; i < outerRadios; i++) {
+      for (let j = 0; j < height; j++) {
+        lathePoints.push(new THREE.Vector2(i, j));
       }
     }
-    const carpetSegments = 20;
-    const carpetPhiStart = Math.PI * 16 / 180;
-    const carpetPhiLength = Math.PI * 58 / 180;
-    const carpetGeometry = new THREE.LatheBufferGeometry(carpetPoints, carpetSegments, carpetPhiStart, carpetPhiLength);
-    const carpetMaterial = new THREE.MeshBasicMaterial({color: 0xffff00});
-    const carpetLathe = new THREE.Mesh(carpetGeometry, carpetMaterial);
+    const phiStart = Math.PI * startingAngel / 180;
+    const phiLength = Math.PI * (finalAngel - startingAngel) / 180;
+    const geometry = new THREE.LatheBufferGeometry(lathePoints, segments, phiStart, phiLength);
+    const material = new THREE.MeshBasicMaterial({color, side: THREE.DoubleSide});
+    const lathe = new THREE.Mesh(geometry, material);
+
+    return (lathe);
+  }
+
+  prepareLatheTask() {
+    const carpetLathe = this.createLatheRing(763, 943, 3, 20, 16, 74, 0xffff00);
     carpetLathe.position.z = 300;
     this.scene.add(carpetLathe);
 
-    const roadPoints = [];
-    for (let i = 732; i < 892; i++) {
-      for (let j = 0; j < 3; j++) {
-        roadPoints.push(new THREE.Vector2(i, j));
-      }
-    }
-    const roadSegments = 20;
-    const roadPhiStart = Math.PI * 0 / 180;
-    const roadPhiLength = Math.PI * 90 / 180;
-    const roadGeometry = new THREE.LatheBufferGeometry(roadPoints, roadSegments, roadPhiStart, roadPhiLength);
-    const roadMaterial = new THREE.MeshBasicMaterial({color: 0x4eb543});
-    const roadLathe = new THREE.Mesh(roadGeometry, roadMaterial);
+    const roadLathe = this.createLatheRing(732, 892, 3, 20, 0, 90, 0x4eb543);
     roadLathe.position.z = 100;
     roadLathe.position.y = 20;
     this.scene.add(roadLathe);
@@ -285,20 +280,9 @@ class SvgTask {
     const holderGeometry = new THREE.CylinderBufferGeometry(1, 1, 1000, 10);
     const holderMaterial = new THREE.MeshBasicMaterial({color: 0x7c8da9});
     const holder = new THREE.Mesh(holderGeometry, holderMaterial);
-    holder.position.y = 500 + 60;
+    holder.position.y = 560;
 
-    const planetCirclePoints = [];
-    for (let i = 80; i < 120; i++) {
-      for (let j = 0; j < 2; j++) {
-        planetCirclePoints.push(new THREE.Vector2(i, j));
-      }
-    }
-    const planetCircleSegments = 20;
-    const planetCirclePhiStart = Math.PI * 0 / 180;
-    const planetCirclePhiLength = Math.PI * 360 / 180;
-    const planetCircleGeometry = new THREE.LatheBufferGeometry(planetCirclePoints, planetCircleSegments, planetCirclePhiStart, planetCirclePhiLength);
-    const planetCircleMaterial = new THREE.MeshBasicMaterial({color: 0x7f47ea});
-    const planetCircle = new THREE.Mesh(planetCircleGeometry, planetCircleMaterial);
+    const planetCircle = this.createLatheRing(80, 120, 2, 20, 0, 360, 0x7f47ea);
     planetCircle.rotateZ((18 * Math.PI) / 180);
 
     saturn.add(planet);
