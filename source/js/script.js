@@ -116,6 +116,8 @@ class SvgTask {
     this.svgObjects = {};
 
     this.prepareLight = this.prepareLight.bind(this);
+    this.prepareSvgs = this.prepareSvgs.bind(this);
+    this.prepareLathe = this.prepareLathe.bind(this);
     this.resizeRenderer = this.resizeRenderer.bind(this);
     this.render = this.render.bind(this);
     this.init = this.init.bind(this);
@@ -126,8 +128,12 @@ class SvgTask {
     const initialHeight = window.innerHeight;
 
     const canvas = this.canvas;
-    this.renderer = new THREE.WebGLRenderer({canvas});
-    this.renderer.setClearColor(0xf0f0f0, 0.3);
+    this.renderer = new THREE.WebGLRenderer({canvas,
+      alpha: true,
+      antialias: true,
+      logarithmicDepthBuffer: true
+    });
+    this.renderer.setClearColor(0x000000, 0.7);
 
     const params = {
       fov: 2 * Math.atan(window.innerHeight / (2 * 1000)) * 180 / Math.PI,
@@ -136,14 +142,48 @@ class SvgTask {
       far: 10000
     };
     this.camera = new THREE.PerspectiveCamera(params.fov, params.aspect, params.near, params.far);
-    this.camera.position.z = 1000;
+    this.camera.position.z = 500;
 
     this.controls = new OrbitControls(this.camera, canvas);
 
     this.scene = new THREE.Scene();
 
     this.scene.add(this.prepareLight());
+    this.prepareLathe();
+    // this.prepareSvgs();
 
+    this.resizeRenderer();
+    window.addEventListener(`resize`, this.resizeRenderer);
+
+    canvasFrame.addRender(this.render);
+  }
+
+  prepareLight() {
+    const cameraPosition = this.camera.position.z;
+
+    const light = new THREE.Group();
+
+    const directionaLight = new THREE.DirectionalLight(new THREE.Color(`rgb(255,255,255)`), 0.84);
+
+    const directionalY = Math.pow(Math.abs(Math.pow(Math.pow(Math.pow(2, 3 / 2) / (Math.pow(3, 1 / 2) + cameraPosition), 2) - cameraPosition, 2) - cameraPosition), 1 / 2);
+    directionaLight.position.set(0, directionalY, cameraPosition);
+
+    light.add(directionaLight);
+
+    const pointLight1 = new THREE.PointLight(new THREE.Color(`rgb(246,242,255)`), 0.6, 975, 2);
+    pointLight1.position.set(785, 350, 710);
+
+    light.add(pointLight1);
+
+    const pointLight2 = new THREE.PointLight(new THREE.Color(`rgb(245,254,255)`), 0.95, 975, 2);
+    pointLight1.position.set(730, 800, 985);
+
+    light.add(pointLight2);
+
+    return light;
+  }
+
+  prepareSvgs() {
     let loader = new SVGLoader();
 
     this.svgsOptions.forEach((svg) => {
@@ -198,36 +238,39 @@ class SvgTask {
           },
       );
     });
-
-    this.resizeRenderer();
-    window.addEventListener(`resize`, this.resizeRenderer);
-
-    canvasFrame.addRender(this.render);
   }
 
-  prepareLight() {
-    const cameraPosition = this.camera.position.z;
+  prepareLathe() {
+    // carpet
+    // Ширина - 180
+    // Толщина - 3
+    // Радиус внутреннего края «Коврика» - 763
+    // Начинается на 16deg и заканчивается на 74deg
 
-    const light = new THREE.Group();
+    // const innerRadius = 763;
+    // const outerRadius = 943;
+    // const thetaSegments = 20;
+    // const phiSegments = 5;
+    // const thetaStart = Math.PI * 16 / 180;
+    // const thetaLength = Math.PI * 58 / 180;
+    // const geometry = new THREE.RingBufferGeometry(
+    //     innerRadius, outerRadius,
+    //     thetaSegments, phiSegments,
+    //     thetaStart, thetaLength);
 
-    const directionaLight = new THREE.DirectionalLight(new THREE.Color(`rgb(255,255,255)`), 0.84);
+    const points = [];
+    for (let i = 0; i < 10; i++) {
+      points.push(new THREE.Vector2(Math.sin(i * 0.2) * 10 + 5, (i - 5) * 2));
+    }
+    const segments = 1;
+    const phiStart = Math.PI * 16 / 180;
+    const phiLength = Math.PI * 58 / 180;
+    const geometry = new THREE.LatheBufferGeometry(points, segments, phiStart, phiLength);
 
-    const directionalY = Math.pow(Math.abs(Math.pow(Math.pow(Math.pow(2, 3 / 2) / (Math.pow(3, 1 / 2) + cameraPosition), 2) - cameraPosition, 2) - cameraPosition), 1 / 2);
-    directionaLight.position.set(0, directionalY, cameraPosition);
-
-    light.add(directionaLight);
-
-    const pointLight1 = new THREE.PointLight(new THREE.Color(`rgb(246,242,255)`), 0.6, 975, 2);
-    pointLight1.position.set(785, 350, 710);
-
-    light.add(pointLight1);
-
-    const pointLight2 = new THREE.PointLight(new THREE.Color(`rgb(245,254,255)`), 0.95, 975, 2);
-    pointLight1.position.set(730, 800, 985);
-
-    light.add(pointLight2);
-
-    return light;
+    let material = new THREE.MeshBasicMaterial({color: 0xffff00});
+    let lathe = new THREE.Mesh(geometry, material);
+    lathe.position.z = 300;
+    this.scene.add(lathe);
   }
 
   resizeRenderer() {
