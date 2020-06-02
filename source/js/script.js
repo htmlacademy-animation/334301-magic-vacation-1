@@ -142,7 +142,7 @@ class SvgTask {
       far: 10000
     };
     this.camera = new THREE.PerspectiveCamera(params.fov, params.aspect, params.near, params.far);
-    this.camera.position.z = 500;
+    this.camera.position.z = 2000;
 
     this.controls = new OrbitControls(this.camera, canvas);
 
@@ -259,8 +259,13 @@ class SvgTask {
     //     thetaStart, thetaLength);
 
     const points = [];
-    for (let i = 0; i < 10; i++) {
-      points.push(new THREE.Vector2(Math.sin(i * 0.2) * 10 + 5, (i - 5) * 2));
+    // for (let i = 0; i < 10; ++i) {
+    //   points.push(new THREE.Vector2(Math.sin(i * 0.2) * 3 + 3, (i - 5) * .8));
+    // }
+    for (let i = 763; i < 943; i++) {
+      for (let j = 0; j < 3; j++) {
+        points.push(new THREE.Vector2(i, j));
+      }
     }
     const segments = 1;
     const phiStart = Math.PI * 16 / 180;
