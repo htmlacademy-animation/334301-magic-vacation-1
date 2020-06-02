@@ -116,6 +116,9 @@ class SvgTask {
     this.svgObjects = {};
 
     this.prepareLight = this.prepareLight.bind(this);
+    this.prepareSvgs = this.prepareSvgs.bind(this);
+    this.prepareLatheTask = this.prepareLatheTask.bind(this);
+    this.createLatheRing = this.createLatheRing.bind(this);
     this.resizeRenderer = this.resizeRenderer.bind(this);
     this.render = this.render.bind(this);
     this.init = this.init.bind(this);
@@ -126,8 +129,12 @@ class SvgTask {
     const initialHeight = window.innerHeight;
 
     const canvas = this.canvas;
-    this.renderer = new THREE.WebGLRenderer({canvas});
-    this.renderer.setClearColor(0xf0f0f0, 0.3);
+    this.renderer = new THREE.WebGLRenderer({canvas,
+      alpha: true,
+      antialias: true,
+      logarithmicDepthBuffer: true
+    });
+    this.renderer.setClearColor(0x000000, 0.7);
 
     const params = {
       fov: 2 * Math.atan(window.innerHeight / (2 * 1000)) * 180 / Math.PI,
@@ -136,14 +143,48 @@ class SvgTask {
       far: 10000
     };
     this.camera = new THREE.PerspectiveCamera(params.fov, params.aspect, params.near, params.far);
-    this.camera.position.z = 1000;
+    this.camera.position.z = 2000;
 
     this.controls = new OrbitControls(this.camera, canvas);
 
     this.scene = new THREE.Scene();
 
     this.scene.add(this.prepareLight());
+    this.prepareLatheTask();
+    // this.prepareSvgs();
 
+    this.resizeRenderer();
+    window.addEventListener(`resize`, this.resizeRenderer);
+
+    canvasFrame.addRender(this.render);
+  }
+
+  prepareLight() {
+    const cameraPosition = this.camera.position.z;
+
+    const light = new THREE.Group();
+
+    const directionaLight = new THREE.DirectionalLight(new THREE.Color(`rgb(255,255,255)`), 0.84);
+
+    const directionalY = Math.pow(Math.abs(Math.pow(Math.pow(Math.pow(2, 3 / 2) / (Math.pow(3, 1 / 2) + cameraPosition), 2) - cameraPosition, 2) - cameraPosition), 1 / 2);
+    directionaLight.position.set(0, directionalY, cameraPosition);
+
+    light.add(directionaLight);
+
+    const pointLight1 = new THREE.PointLight(new THREE.Color(`rgb(246,242,255)`), 0.6, 975, 2);
+    pointLight1.position.set(785, 350, 710);
+
+    light.add(pointLight1);
+
+    const pointLight2 = new THREE.PointLight(new THREE.Color(`rgb(245,254,255)`), 0.95, 975, 2);
+    pointLight1.position.set(730, 800, 985);
+
+    light.add(pointLight2);
+
+    return light;
+  }
+
+  prepareSvgs() {
     let loader = new SVGLoader();
 
     this.svgsOptions.forEach((svg) => {
@@ -198,36 +239,57 @@ class SvgTask {
           },
       );
     });
-
-    this.resizeRenderer();
-    window.addEventListener(`resize`, this.resizeRenderer);
-
-    canvasFrame.addRender(this.render);
   }
 
-  prepareLight() {
-    const cameraPosition = this.camera.position.z;
+  createLatheRing(innerRadius, outerRadios, height, segments, startingAngel, finalAngel, color) {
+    const lathePoints = [];
+    for (let i = innerRadius; i < outerRadios; i++) {
+      for (let j = 0; j < height; j++) {
+        lathePoints.push(new THREE.Vector2(i, j));
+      }
+    }
+    const phiStart = Math.PI * startingAngel / 180;
+    const phiLength = Math.PI * (finalAngel - startingAngel) / 180;
+    const geometry = new THREE.LatheBufferGeometry(lathePoints, segments, phiStart, phiLength);
+    const material = new THREE.MeshBasicMaterial({color, side: THREE.DoubleSide});
+    const lathe = new THREE.Mesh(geometry, material);
 
-    const light = new THREE.Group();
+    return (lathe);
+  }
 
-    const directionaLight = new THREE.DirectionalLight(new THREE.Color(`rgb(255,255,255)`), 0.84);
+  prepareLatheTask() {
+    const carpetLathe = this.createLatheRing(763, 943, 3, 20, 16, 74, 0xffff00);
+    carpetLathe.position.z = 300;
+    this.scene.add(carpetLathe);
 
-    const directionalY = Math.pow(Math.abs(Math.pow(Math.pow(Math.pow(2, 3 / 2) / (Math.pow(3, 1 / 2) + cameraPosition), 2) - cameraPosition, 2) - cameraPosition), 1 / 2);
-    directionaLight.position.set(0, directionalY, cameraPosition);
+    const roadLathe = this.createLatheRing(732, 892, 3, 20, 0, 90, 0x4eb543);
+    roadLathe.position.z = 100;
+    roadLathe.position.y = 20;
+    this.scene.add(roadLathe);
 
-    light.add(directionaLight);
+    const saturn = new THREE.Group();
+    const planetGeometry = new THREE.SphereGeometry(60, 30, 30);
+    const planetMaterial = new THREE.MeshBasicMaterial({color: 0xff003a});
+    const planet = new THREE.Mesh(planetGeometry, planetMaterial);
 
-    const pointLight1 = new THREE.PointLight(new THREE.Color(`rgb(246,242,255)`), 0.6, 975, 2);
-    pointLight1.position.set(785, 350, 710);
+    const smallPlanetGeometry = new THREE.SphereGeometry(10, 30, 30);
+    const smallPlanetMaterial = new THREE.MeshBasicMaterial({color: 0x7f47ea});
+    const smallPlanet = new THREE.Mesh(smallPlanetGeometry, smallPlanetMaterial);
+    smallPlanet.position.y = 120;
 
-    light.add(pointLight1);
+    const holderGeometry = new THREE.CylinderBufferGeometry(1, 1, 1000, 10);
+    const holderMaterial = new THREE.MeshBasicMaterial({color: 0x7c8da9});
+    const holder = new THREE.Mesh(holderGeometry, holderMaterial);
+    holder.position.y = 560;
 
-    const pointLight2 = new THREE.PointLight(new THREE.Color(`rgb(245,254,255)`), 0.95, 975, 2);
-    pointLight1.position.set(730, 800, 985);
+    const planetCircle = this.createLatheRing(80, 120, 2, 20, 0, 360, 0x7f47ea);
+    planetCircle.rotateZ((18 * Math.PI) / 180);
 
-    light.add(pointLight2);
-
-    return light;
+    saturn.add(planet);
+    saturn.add(smallPlanet);
+    saturn.add(holder);
+    saturn.add(planetCircle);
+    this.scene.add(saturn);
   }
 
   resizeRenderer() {
