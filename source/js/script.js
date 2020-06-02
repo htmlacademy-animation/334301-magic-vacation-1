@@ -241,41 +241,71 @@ class SvgTask {
   }
 
   prepareLathe() {
-    // carpet
-    // Ширина - 180
-    // Толщина - 3
-    // Радиус внутреннего края «Коврика» - 763
-    // Начинается на 16deg и заканчивается на 74deg
-
-    // const innerRadius = 763;
-    // const outerRadius = 943;
-    // const thetaSegments = 20;
-    // const phiSegments = 5;
-    // const thetaStart = Math.PI * 16 / 180;
-    // const thetaLength = Math.PI * 58 / 180;
-    // const geometry = new THREE.RingBufferGeometry(
-    //     innerRadius, outerRadius,
-    //     thetaSegments, phiSegments,
-    //     thetaStart, thetaLength);
-
-    const points = [];
-    // for (let i = 0; i < 10; ++i) {
-    //   points.push(new THREE.Vector2(Math.sin(i * 0.2) * 3 + 3, (i - 5) * .8));
-    // }
+    const carpetPoints = [];
     for (let i = 763; i < 943; i++) {
       for (let j = 0; j < 3; j++) {
-        points.push(new THREE.Vector2(i, j));
+        carpetPoints.push(new THREE.Vector2(i, j));
       }
     }
-    const segments = 1;
-    const phiStart = Math.PI * 16 / 180;
-    const phiLength = Math.PI * 58 / 180;
-    const geometry = new THREE.LatheBufferGeometry(points, segments, phiStart, phiLength);
+    const carpetSegments = 20;
+    const carpetPhiStart = Math.PI * 16 / 180;
+    const carpetPhiLength = Math.PI * 58 / 180;
+    const carpetGeometry = new THREE.LatheBufferGeometry(carpetPoints, carpetSegments, carpetPhiStart, carpetPhiLength);
+    const carpetMaterial = new THREE.MeshBasicMaterial({color: 0xffff00});
+    const carpetLathe = new THREE.Mesh(carpetGeometry, carpetMaterial);
+    carpetLathe.position.z = 300;
+    this.scene.add(carpetLathe);
 
-    let material = new THREE.MeshBasicMaterial({color: 0xffff00});
-    let lathe = new THREE.Mesh(geometry, material);
-    lathe.position.z = 300;
-    this.scene.add(lathe);
+    const roadPoints = [];
+    for (let i = 732; i < 892; i++) {
+      for (let j = 0; j < 3; j++) {
+        roadPoints.push(new THREE.Vector2(i, j));
+      }
+    }
+    const roadSegments = 20;
+    const roadPhiStart = Math.PI * 0 / 180;
+    const roadPhiLength = Math.PI * 90 / 180;
+    const roadGeometry = new THREE.LatheBufferGeometry(roadPoints, roadSegments, roadPhiStart, roadPhiLength);
+    const roadMaterial = new THREE.MeshBasicMaterial({color: 0x4eb543});
+    const roadLathe = new THREE.Mesh(roadGeometry, roadMaterial);
+    roadLathe.position.z = 100;
+    roadLathe.position.y = 20;
+    this.scene.add(roadLathe);
+
+    const saturn = new THREE.Group();
+    const planetGeometry = new THREE.SphereGeometry(60, 30, 30);
+    const planetMaterial = new THREE.MeshBasicMaterial({color: 0xff003a});
+    const planet = new THREE.Mesh(planetGeometry, planetMaterial);
+
+    const smallPlanetGeometry = new THREE.SphereGeometry(10, 30, 30);
+    const smallPlanetMaterial = new THREE.MeshBasicMaterial({color: 0x7f47ea});
+    const smallPlanet = new THREE.Mesh(smallPlanetGeometry, smallPlanetMaterial);
+    smallPlanet.position.y = 120;
+
+    const holderGeometry = new THREE.CylinderBufferGeometry(1, 1, 1000, 10);
+    const holderMaterial = new THREE.MeshBasicMaterial({color: 0x7c8da9});
+    const holder = new THREE.Mesh(holderGeometry, holderMaterial);
+    holder.position.y = 500 + 60;
+
+    const planetCirclePoints = [];
+    for (let i = 80; i < 120; i++) {
+      for (let j = 0; j < 2; j++) {
+        planetCirclePoints.push(new THREE.Vector2(i, j));
+      }
+    }
+    const planetCircleSegments = 20;
+    const planetCirclePhiStart = Math.PI * 0 / 180;
+    const planetCirclePhiLength = Math.PI * 360 / 180;
+    const planetCircleGeometry = new THREE.LatheBufferGeometry(planetCirclePoints, planetCircleSegments, planetCirclePhiStart, planetCirclePhiLength);
+    const planetCircleMaterial = new THREE.MeshBasicMaterial({color: 0x7f47ea});
+    const planetCircle = new THREE.Mesh(planetCircleGeometry, planetCircleMaterial);
+    planetCircle.rotateZ((18 * Math.PI) / 180);
+
+    saturn.add(planet);
+    saturn.add(smallPlanet);
+    saturn.add(holder);
+    saturn.add(planetCircle);
+    this.scene.add(saturn);
   }
 
   resizeRenderer() {
