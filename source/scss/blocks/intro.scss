@@ -1,4 +1,5 @@
 .intro {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -21,6 +22,13 @@
   @media (max-width: $mobile) and (orientation: landscape) {
     padding: 16vh 0 5vh;
   }
+}
+
+#introCanvas {
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
 }
 
 .intro__title {
