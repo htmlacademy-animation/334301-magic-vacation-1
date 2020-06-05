@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import {SVGLoader} from "three/examples/jsm/loaders/SVGLoader";
 
+import colors from './colors';
+
 class SceneObjects {
   constructor() {
     this.prepareLight = this.prepareLight.bind(this);
@@ -12,6 +14,37 @@ class SceneObjects {
     this.preparePyramid = this.preparePyramid.bind(this);
     this.prepareLattern = this.prepareLattern.bind(this);
     this.prepareSnowman = this.prepareSnowman.bind(this);
+
+
+    this.prepareSoftMaterial = this.prepareSoftMaterial.bind(this);
+    this.prepareBasicMaterial = this.prepareBasicMaterial.bind(this);
+    this.prepareStrongMaterial = this.prepareStrongMaterial.bind(this);
+  }
+
+  prepareSoftMaterial(color) {
+    return new THREE.MeshStandardMaterial({
+      color,
+      metalness: 0.65,
+      roughness: 0.85,
+    });
+  }
+
+  prepareBasicMaterial(color) {
+    return new THREE.MeshStandardMaterial({
+      color,
+      metalness: 0.5,
+      roughness: 0.75,
+      side: THREE.DoubleSide,
+    });
+  }
+
+  prepareStrongMaterial(color) {
+    return new THREE.MeshStandardMaterial({
+      color,
+      metalness: 0.2,
+      roughness: 0.75,
+      side: THREE.DoubleSide,
+    });
   }
 
   prepareLight(camera) {
@@ -36,6 +69,9 @@ class SceneObjects {
 
     light.add(pointLight2);
 
+    const ambientLight = new THREE.AmbientLight(0xffffff);
+    light.add(ambientLight);
+
     return light;
   }
 
@@ -52,13 +88,23 @@ class SceneObjects {
 
             for (let i = 0; i < paths.length; i++) {
               const path = paths[i];
+              let shapeMaterial;
 
-              const shapeMaterial = new THREE.MeshBasicMaterial({
-                color: path.color,
-                side: THREE.DoubleSide,
-                opacity: path.userData.style.fillOpacity,
-                transparent: path.userData.style.fillOpacity < 1,
-              });
+              switch (svg.material) {
+                case `soft`:
+                  shapeMaterial = this.prepareSoftMaterial(svg.color);
+                  break;
+                case `basic`:
+                  shapeMaterial = this.prepareBasicMaterial(svg.color);
+                  break;
+                default:
+                  shapeMaterial = new THREE.MeshBasicMaterial({
+                    color: path.color,
+                    side: THREE.DoubleSide,
+                  });
+              }
+              shapeMaterial.opacity = path.userData.style.fillOpacity;
+              shapeMaterial.transparent = path.userData.style.fillOpacity < 1;
 
               const shapes = path.toShapes(true);
 
@@ -87,13 +133,40 @@ class SceneObjects {
             svgGroup.position.z = svg.z;
             svgGroup.rotateZ((180 * Math.PI) / 180);
             svgGroup.scale.multiplyScalar(scaleValue);
-            scene.add(svgGroup);
 
             const title = svg.title;
             svgObjects.push({
               title,
               object: svgGroup,
             });
+
+            if (title === `keyhole`) {
+              const keyholeGroup = new THREE.Group();
+              const svgBox = new THREE.Box3().setFromObject(svgGroup);
+
+              const backWidth = svgBox.max.x - svgBox.min.x;
+              const backHeight = svg.height;
+              const backDepth = 0;
+              const backWidthSegments = 1;
+              const backHeightSegments = 1;
+              const backDepthSegments = 1;
+              const backGeometry = new THREE.BoxBufferGeometry(
+                  backWidth, backHeight, backDepth,
+                  backWidthSegments, backHeightSegments, backDepthSegments);
+              const backMaterial = new THREE.MeshBasicMaterial({
+                color: colors.brightPurple,
+              });
+              const back = new THREE.Mesh(backGeometry, backMaterial);
+
+              scene.add(svgGroup);
+              scene.add(back);
+
+              back.position.z = svg.z;
+
+              scene.add(keyholeGroup);
+            } else {
+              scene.add(svgGroup);
+            }
           },
       );
     });
@@ -118,33 +191,30 @@ class SceneObjects {
   }
 
   prepareCarpet() {
-    const carpet = this.prepareLatheRing(763, 943, 3, 20, 16, 74, 0xffff00);
-    carpet.position.z = 300;
+    const carpet = this.prepareLatheRing(763, 943, 3, 40, 16, 74, 0xffff00);
 
     return carpet;
   }
 
   prepareRoad() {
-    const road = this.prepareLatheRing(732, 892, 3, 20, 0, 90, 0x4eb543);
-    road.position.z = 100;
-    road.position.y = 20;
+    const road = this.prepareLatheRing(732, 892, 3, 40, 0, 90, 0x4eb543);
 
     return road;
   }
 
-  prepareSaturn() {
+  prepareSaturn(planetColor, smallPlanetColor) {
     const saturn = new THREE.Group();
     const planetGeometry = new THREE.SphereGeometry(60, 30, 30);
-    const planetMaterial = new THREE.MeshBasicMaterial({color: 0xff003a, side: THREE.DoubleSide});
+    const planetMaterial = this.prepareSoftMaterial(planetColor);
     const planet = new THREE.Mesh(planetGeometry, planetMaterial);
 
     const smallPlanetGeometry = new THREE.SphereGeometry(10, 30, 30);
-    const smallPlanetMaterial = new THREE.MeshBasicMaterial({color: 0x7f47ea, side: THREE.DoubleSide});
+    const smallPlanetMaterial = this.prepareSoftMaterial(smallPlanetColor);
     const smallPlanet = new THREE.Mesh(smallPlanetGeometry, smallPlanetMaterial);
     smallPlanet.position.y = 120;
 
     const holderGeometry = new THREE.CylinderBufferGeometry(1, 1, 1000, 10);
-    const holderMaterial = new THREE.MeshBasicMaterial({color: 0x7c8da9, side: THREE.DoubleSide});
+    const holderMaterial = this.prepareSoftMaterial(colors.metalGrey);
     const holder = new THREE.Mesh(holderGeometry, holderMaterial);
     holder.position.y = 560;
 
@@ -161,19 +231,15 @@ class SceneObjects {
 
   preparePyramid() {
     const pyramidGeometry = new THREE.CylinderGeometry(0, 176, 280, 4);
-    const pyramidMaterial = new THREE.MeshBasicMaterial({color: 0x2b62c7, side: THREE.DoubleSide});
+    const pyramidMaterial = this.prepareSoftMaterial(colors.blue);
     const pyramid = new THREE.Mesh(pyramidGeometry, pyramidMaterial);
-
-    pyramid.rotateY((-5 * Math.PI) / 180);
-    pyramid.position.y = -70;
-    pyramid.position.x = -20;
 
     return pyramid;
   }
 
   prepareLattern() {
     const lattern = new THREE.Group();
-    const mainLatternMaterial = new THREE.MeshBasicMaterial({color: 0x2b62c7, side: THREE.DoubleSide});
+    const mainLatternMaterial = this.prepareSoftMaterial(colors.blue);
 
     const rootBottomGeometry = new THREE.CylinderBufferGeometry(16, 16, 120, 20);
     const rootBottom = new THREE.Mesh(rootBottomGeometry, mainLatternMaterial);
@@ -215,9 +281,9 @@ class SceneObjects {
         new THREE.Face3(4, 1, 0),
         new THREE.Face3(4, 5, 1),
     );
-
+    lampPyramid.computeFaceNormals();
     const lampTransformation = new THREE.Matrix4().makeScale(42, 60, 42);
-    const lampMaterial = new THREE.MeshBasicMaterial({color: 0xa1b5e9, side: THREE.DoubleSide});
+    const lampMaterial = this.prepareSoftMaterial(colors.lightBlue);
     const lamp = new THREE.Mesh(lampPyramid.applyMatrix4(lampTransformation), lampMaterial);
     lamp.position.y = 304;
 
@@ -246,17 +312,9 @@ class SceneObjects {
         new THREE.Face3(4, 1, 0),
         new THREE.Face3(4, 5, 1),
     );
-
+    upperLatternPyramid.computeFaceNormals();
     const ulampTransformation = new THREE.Matrix4().makeScale(57, 6, 57);
-    upperLatternPyramid.faces.forEach((face, index) => {
-      if (index === 9 || index === 8) {
-        face.color = new THREE.Color(`#a1b5e9`);
-      } else {
-        face.color = new THREE.Color(`#2b62c7`);
-      }
-    });
-    const upperLMaterial = new THREE.MeshBasicMaterial({vertexColors: THREE.FaceColors, side: THREE.DoubleSide});
-    const upperLattern = new THREE.Mesh(upperLatternPyramid.applyMatrix4(ulampTransformation), upperLMaterial);
+    const upperLattern = new THREE.Mesh(upperLatternPyramid.applyMatrix4(ulampTransformation), mainLatternMaterial);
     upperLattern.position.y = 364;
 
     lattern.add(rootBottom);
@@ -266,46 +324,37 @@ class SceneObjects {
     lattern.add(lamp);
     lattern.add(upperLattern);
 
-    lattern.position.y = -220;
-    lattern.position.x = 380;
-    lattern.position.z = 20;
-
-    lattern.rotateX((7.5 * Math.PI) / 180);
-    lattern.rotateY((-5 * Math.PI) / 180);
-
     return lattern;
   }
 
   prepareSnowman() {
-    const snoman = new THREE.Group();
-    const snomanHead = new THREE.Group();
+    const snowman = new THREE.Group();
+    const snowmanHead = new THREE.Group();
     const widthSegments = 40;
     const heightSegments = 30;
-    const snomanBottomGeometry = new THREE.SphereGeometry(75, widthSegments, heightSegments);
-    const snomanTopGeometry = new THREE.SphereGeometry(44, widthSegments, heightSegments);
 
-    const snowMaterial = new THREE.MeshBasicMaterial({color: 0xFFFFFF, side: THREE.DoubleSide});
-    const bottomBall = new THREE.Mesh(snomanBottomGeometry, snowMaterial);
+    const snowmanBottomGeometry = new THREE.SphereGeometry(75, widthSegments, heightSegments);
+    const snowmanTopGeometry = new THREE.SphereGeometry(44, widthSegments, heightSegments);
+    const snowMaterial = this.prepareStrongMaterial(colors.snowColor);
+    const bottomBall = new THREE.Mesh(snowmanBottomGeometry, snowMaterial);
+    const topBall = new THREE.Mesh(snowmanTopGeometry, snowMaterial);
 
-    const topBall = new THREE.Mesh(snomanTopGeometry, snowMaterial);
-    const carrotMaterial = new THREE.MeshBasicMaterial({color: 0xc95629, side: THREE.DoubleSide});
+    const carrotMaterial = this.prepareSoftMaterial(colors.orange);
     const carrotGeometry = new THREE.ConeBufferGeometry(18, 75, 50);
     const carrot = new THREE.Mesh(carrotGeometry, carrotMaterial);
     carrot.rotateZ((-90 * Math.PI) / 180);
     carrot.position.x = 44;
 
-    snomanHead.add(topBall);
-    snomanHead.add(carrot);
-    snomanHead.position.y = 109;
-    snomanHead.rotateY((-15 * Math.PI) / 180);
-    snomanHead.rotateZ((-15 * Math.PI) / 180);
+    snowmanHead.add(topBall);
+    snowmanHead.add(carrot);
+    snowmanHead.position.y = 109;
+    snowmanHead.rotateY((-15 * Math.PI) / 180);
+    snowmanHead.rotateZ((-15 * Math.PI) / 180);
 
-    snoman.add(bottomBall);
-    snoman.add(snomanHead);
-    snoman.position.y = -120;
-    snoman.position.x = -130;
+    snowman.add(bottomBall);
+    snowman.add(snowmanHead);
 
-    return snoman;
+    return snowman;
   }
 }
 

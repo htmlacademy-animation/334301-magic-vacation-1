@@ -4,6 +4,7 @@ import AnimatedText from './animated-text';
 
 import canvasFrame from '../helpers/canvas-frame';
 import sceneObjects from '../helpers/scene-objects';
+import colors from '../helpers/colors';
 
 const introTitle = new AnimatedText(document.querySelector(`.intro__title`));
 const introDate = new AnimatedText(document.querySelector(`.intro__date`));
@@ -18,6 +19,8 @@ const svgItems = [
     x: 100,
     y: 150,
     z: 30,
+    material: `soft`,
+    color: colors.lightDominantRed,
   },
   {
     title: `snowflake`,
@@ -28,6 +31,8 @@ const svgItems = [
     x: 200,
     y: 200,
     z: 35,
+    material: `basic`,
+    color: colors.blue,
   },
   {
     title: `question`,
@@ -38,16 +43,8 @@ const svgItems = [
     x: -100,
     y: -100,
     z: 40,
-  },
-  {
-    title: `leafKeyhole`,
-    url: `img/leaf.svg`,
-    height: 117,
-    depth: 8,
-    cap: 2,
-    x: 100,
-    y: -100,
-    z: 45,
+    material: `basic`,
+    color: colors.blue,
   },
   {
     title: `keyhole`,
@@ -58,16 +55,20 @@ const svgItems = [
     x: 1000,
     y: 1000,
     z: -300,
+    material: `soft`,
+    color: colors.darkPurple,
   },
   {
-    title: `flowerRoom1`,
-    url: `img/flower.svg`,
-    height: 413,
-    depth: 4,
+    title: `leafKeyhole`,
+    url: `img/leaf.svg`,
+    height: 117,
+    depth: 8,
     cap: 2,
-    x: -200,
-    y: 200,
-    z: 50,
+    x: 100,
+    y: -100,
+    z: 45,
+    material: `basic`,
+    color: colors.green,
   },
   {
     title: `leafRoom2`,
@@ -78,6 +79,8 @@ const svgItems = [
     x: 500,
     y: 300,
     z: 55,
+    material: `basic`,
+    color: colors.green,
   },
 ];
 
@@ -121,21 +124,55 @@ class IntroCanvas {
     const light = sceneObjects.prepareLight(this.camera);
     const carpet = sceneObjects.prepareCarpet();
     const road = sceneObjects.prepareRoad();
-    const saturn = sceneObjects.prepareSaturn();
+    const saturn1 = sceneObjects.prepareSaturn(colors.dominantRed, colors.brightPurple);
+    const saturn2 = sceneObjects.prepareSaturn(colors.shadowedDominantRed, colors.shadowedBrightPurple);
     const svgObjects = sceneObjects.prepareSvgs(svgItems, this.scene);
+    const pyramid = sceneObjects.preparePyramid();
+    const snowman = sceneObjects.prepareSnowman();
+    const lattern = sceneObjects.prepareLattern();
 
     this.objects = {
       light,
       carpet,
       road,
-      saturn,
+      saturn1,
+      saturn2,
       svgObjects,
+      pyramid,
+      snowman,
+      lattern,
     };
+
+    carpet.position.z = 300;
+
+    road.position.y = 20;
+    road.position.z = 100;
+
+    saturn1.position.x = -150;
+
+    saturn2.position.x = 150;
+
+    pyramid.position.x = -200;
+    pyramid.position.y = -200;
+    pyramid.rotateY((-5 * Math.PI) / 180);
+
+    snowman.position.x = 330;
+    snowman.position.y = 330;
+
+    lattern.position.x = 250;
+    lattern.position.y = 250;
+    lattern.position.z = 100;
+    lattern.rotateX((7.5 * Math.PI) / 180);
+    lattern.rotateY((-5 * Math.PI) / 180);
 
     this.scene.add(light);
     this.scene.add(carpet);
     this.scene.add(road);
-    this.scene.add(saturn);
+    this.scene.add(saturn1);
+    this.scene.add(saturn2);
+    this.scene.add(pyramid);
+    this.scene.add(snowman);
+    this.scene.add(lattern);
 
     canvasFrame.addRender(this.render);
     window.addEventListener(`resize`, this.resizeRenderer);

@@ -47,41 +47,22 @@ export default () => {
       this.init = this.init.bind(this);
       this.render = this.render.bind(this);
       this.resizeRenderer = this.resizeRenderer.bind(this);
-      this.prepareSlideInstance = this.prepareSlideInstance.bind(this);
+      this.makeInstance = this.makeInstance.bind(this);
       this.blurAnimationTick = this.blurAnimationTick.bind(this);
       this.translateYAnimationTick = this.translateYAnimationTick.bind(this);
     }
 
-    prepareSlideInstance(geometry, material, index) {
-      const slidesObjects = {};
-      const slideGroup = new THREE.Group();
-      const plane = new THREE.Mesh(geometry, material);
-      slideGroup.add(plane);
-
-      if (index === 1) {
-        // planeGroup.add(this.makePyramid());
-        // planeGroup.add(this.makeLattern());
-      }
-
-      if (index === 2) {
-        // planeGroup.add(this.makeSnowman());
-      }
-
-      this.scene.add(slideGroup);
-      slideGroup.position.x = PLANE_WIDTH * index;
-
-      slidesObjects.plane = plane;
-      this.objects.slides.push(slidesObjects);
-    }
-
     init() {
+      const initialWidth = window.innerWidth;
+      const initialHeight = window.innerHeight;
+
       const canvas = this.canvas;
       this.renderer = new THREE.WebGLRenderer({canvas});
-      this.renderer.setClearColor(0xEEEEEE);
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
+      this.renderer.setClearColor(0x000000, 0.7);
+      this.renderer.setSize(initialWidth, initialHeight);
 
-      const fov = 2 * Math.atan(window.innerHeight / (2 * 1000)) * 180 / Math.PI;
-      const aspect = window.innerWidth / window.innerHeight;
+      const fov = 2 * Math.atan(initialHeight / (2 * 1000)) * 180 / Math.PI;
+      const aspect = initialWidth / initialHeight;
       const near = 0.1;
       const far = 1000;
       this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
@@ -98,8 +79,6 @@ export default () => {
       const planeMaterials = scenes.map((scene, index) => {
         return new THREE.RawShaderMaterial(
             {
-              transparent: true,
-              uniformsNeedUpdate: true,
               uniforms: {
                 map: {
                   value: loader.load(scene.src)
@@ -114,7 +93,7 @@ export default () => {
                 },
                 uResolution: {
                   type: `v2`,
-                  value: new THREE.Vector2(window.innerWidth, window.innerHeight / window.devicePixelRatio / 2),
+                  value: new THREE.Vector2(initialWidth / (window.devicePixelRatio * 2), initialHeight),
                 },
                 uBlurProgress: {
                   type: `f`,
@@ -251,15 +230,14 @@ export default () => {
         );
       });
 
+      const light = sceneObjects.prepareLight(this.camera);
+      this.scene.add(light);
+      this.objects.light = light;
+
       loadManager.onLoad = () => {
-        this.objects.slides = [];
-
-        const light = sceneObjects.prepareLight(this.camera);
-        this.scene.add(light);
-        this.objects.light = light;
-
+        this.objects.planes = [];
         planeMaterials.forEach((material, index) => {
-          this.prepareSlideInstance(planeGeometry, material, index);
+          this.makeInstance(planeGeometry, material, index);
         });
       };
 
@@ -270,11 +248,11 @@ export default () => {
     render(time) {
       time *= 0.001;
 
-      if (this.objects.slides && this.objects.slides.length > 0) {
+      if (this.objects.planes && this.objects.planes.length > 0) {
         if (this.toggleBlurAnimation === true) {
           this.toggleBlurAnimation = false;
 
-          animate.easing(this.blurAnimationTick(this.objects.slides[1].plane.material.uniforms.uBlurProgress.value, 1 - this.objects.slides[1].plane.material.uniforms.uBlurProgress.value), 1000, bezierEasing(0.00, 0.0, 0.58, 1.0));
+          animate.easing(this.blurAnimationTick(this.objects.planes[1].material.uniforms.uBlurProgress.value, 1 - this.objects.planes[1].material.uniforms.uBlurProgress.value), 1000, bezierEasing(0.00, 0.0, 0.58, 1.0));
         }
 
         if (this.bubbleAnimation === true) {
@@ -284,32 +262,30 @@ export default () => {
           animate.easing(this.translateAmlitudeModifierTick(1.5, 0.0), 6000, bezierEasing(0.00, 0.0, 0.58, 1.0));
         }
 
-        this.objects.slides[1].plane.material.uniforms.uTime.value = time;
-        this.objects.slides[1].plane.material.uniformsNeedUpdate = true;
+        this.objects.planes[1].material.uniforms.uTime.value = time;
+        this.objects.planes[1].material.uniformsNeedUpdate = true;
       }
 
       this.renderer.render(this.scene, this.camera);
-      this.resizeRenderer();
     }
 
     resizeRenderer() {
+      const canvasElement = this.renderer.domElement;
       const width = window.innerWidth;
       const height = window.innerHeight;
-      const needResize = this.canvas.width !== width || this.canvas.height !== height;
+      const needResize = canvasElement.width !== width || canvasElement.height !== height;
 
       if (needResize) {
-        this.renderer.setSize(width, height);
-        this.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
+        this.renderer.setSize(width, height, false);
         this.camera.fov = 2 * Math.atan(window.innerHeight / (2 * 1000)) * 180 / Math.PI;
-        this.camera.updateProjectionMatrix();
+        this.camera.aspect = canvasElement.clientWidth / canvasElement.clientHeight;
 
-        this.renderer.setSize(width, height);
-        this.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
-
-        if (this.objects.slides && this.objects.slides.length > 0) {
-          this.objects.slides.forEach((slide) => {
-            slide.plane.material.uniforms.uResolution.value = new THREE.Vector2(window.innerWidth / window.devicePixelRatio / 2, window.innerHeight / window.devicePixelRatio / 2);
-            slide.plane.material.uniformsNeedUpdate = true;
+        if (this.objects.planes && this.objects.planes.length > 0) {
+          this.objects.planes.forEach((plane, index) => {
+            if (index === 1) {
+              plane.material.uniforms.uResolution.value = new THREE.Vector2(width / (window.devicePixelRatio * 2), height);
+              plane.material.uniformsNeedUpdate = true;
+            }
           });
         }
 
@@ -317,9 +293,21 @@ export default () => {
       }
     }
 
+    makeInstance(geometry, material, x) {
+      const instanceGroup = new THREE.Group();
+
+      const plane = new THREE.Mesh(geometry, material);
+      this.objects.planes.push(plane);
+
+      instanceGroup.add(plane);
+      instanceGroup.position.x = PLANE_WIDTH * x;
+
+      this.scene.add(instanceGroup);
+    }
+
     blurAnimationTick(from, to) {
       return (progress) => {
-        this.objects.slides[1].plane.material.uniforms.uBlurProgress.value = from + progress * Math.sign(to - from) * Math.abs(to - from);
+        this.objects.planes[1].material.uniforms.uBlurProgress.value = from + progress * Math.sign(to - from) * Math.abs(to - from);
 
         if (progress === 1 && this.blurCounter < 3) {
           this.blurCounter = this.blurCounter + 1;
@@ -331,13 +319,13 @@ export default () => {
 
     translateYAnimationTick(from, to) {
       return (progress) => {
-        this.objects.slides[1].plane.material.uniforms.uTranslateYProgress.value = from + progress * Math.sign(to - from) * Math.abs(to - from);
+        this.objects.planes[1].material.uniforms.uTranslateYProgress.value = from + progress * Math.sign(to - from) * Math.abs(to - from);
       };
     }
 
     translateAmlitudeModifierTick(from, to) {
       return (progress) => {
-        this.objects.slides[1].plane.material.uniforms.uAmplitudeModifier.value = from + progress * Math.sign(to - from) * Math.abs(to - from);
+        this.objects.planes[1].material.uniforms.uAmplitudeModifier.value = from + progress * Math.sign(to - from) * Math.abs(to - from);
       };
     }
   }
