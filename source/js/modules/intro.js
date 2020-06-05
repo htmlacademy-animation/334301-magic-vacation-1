@@ -103,10 +103,10 @@ class IntroCanvas {
       logarithmicDepthBuffer: true
     });
     this.renderer.setClearColor(0x000000, 0.7);
-    this.renderer.setSize(initialWidth, initialHeight, false);
+    this.renderer.setSize(initialWidth, initialHeight);
 
     const params = {
-      fov: 2 * Math.atan(window.innerHeight / (2 * 1000)) * 180 / Math.PI,
+      fov: 2 * Math.atan((window.innerHeight) / (2 * 1000)) * 180 / Math.PI,
       aspect: initialWidth / initialHeight,
       near: 0.1,
       far: 10000
@@ -137,10 +137,8 @@ class IntroCanvas {
     this.scene.add(road);
     this.scene.add(saturn);
 
-    window.addEventListener(`resize`, this.resizeRenderer);
-
     canvasFrame.addRender(this.render);
-    this.resizeRenderer();
+    window.addEventListener(`resize`, this.resizeRenderer);
   }
 
   resizeRenderer() {
@@ -149,7 +147,7 @@ class IntroCanvas {
     const needResize = this.canvas.width !== width || this.canvas.height !== height;
 
     if (needResize) {
-      this.renderer.setSize(width, height, false);
+      this.renderer.setSize(width, height);
       this.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
       this.camera.fov = 2 * Math.atan(window.innerHeight / (2 * 1000)) * 180 / Math.PI;
       this.camera.updateProjectionMatrix();

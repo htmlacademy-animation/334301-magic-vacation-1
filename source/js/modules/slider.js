@@ -78,7 +78,7 @@ export default () => {
       const canvas = this.canvas;
       this.renderer = new THREE.WebGLRenderer({canvas});
       this.renderer.setClearColor(0xEEEEEE);
-      this.renderer.setSize(window.innerWidth, window.innerHeight, false);
+      this.renderer.setSize(window.innerWidth, window.innerHeight);
 
       const fov = 2 * Math.atan(window.innerHeight / (2 * 1000)) * 180 / Math.PI;
       const aspect = window.innerWidth / window.innerHeight;
@@ -114,7 +114,7 @@ export default () => {
                 },
                 uResolution: {
                   type: `v2`,
-                  value: new THREE.Vector2(window.innerWidth / window.devicePixelRatio / 2, window.innerHeight / window.devicePixelRatio / 2),
+                  value: new THREE.Vector2(window.innerWidth, window.innerHeight / window.devicePixelRatio / 2),
                 },
                 uBlurProgress: {
                   type: `f`,
@@ -263,8 +263,8 @@ export default () => {
         });
       };
 
-      window.addEventListener(`resize`, this.resizeRenderer);
       canvasFrame.addRender(this.render);
+      window.addEventListener(`resize`, this.resizeRenderer);
     }
 
     render(time) {
@@ -298,12 +298,12 @@ export default () => {
       const needResize = this.canvas.width !== width || this.canvas.height !== height;
 
       if (needResize) {
-        this.renderer.setSize(width, height, false);
+        this.renderer.setSize(width, height);
         this.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
         this.camera.fov = 2 * Math.atan(window.innerHeight / (2 * 1000)) * 180 / Math.PI;
         this.camera.updateProjectionMatrix();
 
-        this.renderer.setSize(width, height, false);
+        this.renderer.setSize(width, height);
         this.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
 
         if (this.objects.slides && this.objects.slides.length > 0) {
