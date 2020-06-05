@@ -3,7 +3,8 @@ import * as THREE from "three";
 
 import {BezierEasing as bezierEasing} from "../helpers/cubicBezier";
 import animate from '../helpers/animate-functions';
-import canvasFrame from './canvas-frame';
+import canvasFrame from '../helpers/canvas-frame';
+import sceneObjects from '../helpers/scene-objects';
 
 const PLANE_WIDTH = 2048;
 const PLANE_HEIGHT = 1024;
@@ -43,196 +44,41 @@ export default () => {
       this.bubbleAnimation = false;
       this.blurCounter = 0;
 
-      this.main = this.main.bind(this);
+      this.init = this.init.bind(this);
       this.render = this.render.bind(this);
-      this.resizeRendererToDisplaySize = this.resizeRendererToDisplaySize.bind(this);
-      this.makePlaneInstance = this.makePlaneInstance.bind(this);
-      this.makeSnowman = this.makeSnowman.bind(this);
-      this.makePyramid = this.makePyramid.bind(this);
-      this.makeLattern = this.makeLattern.bind(this);
+      this.resizeRenderer = this.resizeRenderer.bind(this);
+      this.prepareSlideInstance = this.prepareSlideInstance.bind(this);
       this.blurAnimationTick = this.blurAnimationTick.bind(this);
       this.translateYAnimationTick = this.translateYAnimationTick.bind(this);
     }
 
-    makePyramid() {
-      const pyramidGeometry = new THREE.CylinderGeometry(0, 176, 280, 4);
-      const pyramidMaterial = new THREE.MeshPhongMaterial({color: 0x2b62c7});
-      const pyramid = new THREE.Mesh(pyramidGeometry, pyramidMaterial);
-
-      pyramid.rotateY((-5 * Math.PI) / 180);
-      pyramid.position.y = -70;
-      pyramid.position.x = -20;
-
-      this.objects.pyramid = pyramid;
-
-      return pyramid;
-    }
-
-    makeLattern() {
-      const lattern = new THREE.Group();
-      const mainLatternMaterial = new THREE.MeshPhongMaterial({color: 0x2b62c7});
-
-      const rootBottomGeometry = new THREE.CylinderBufferGeometry(16, 16, 120, 20);
-      const rootBottom = new THREE.Mesh(rootBottomGeometry, mainLatternMaterial);
-
-      const rootTopGeometry = new THREE.SphereGeometry(16, 40, 30);
-      const rootTop = new THREE.Mesh(rootTopGeometry, mainLatternMaterial);
-      rootTop.position.y = 60;
-
-      const middleGeometry = new THREE.CylinderBufferGeometry(7, 7, 230, 20);
-      const middle = new THREE.Mesh(middleGeometry, mainLatternMaterial);
-      middle.position.y = 185;
-
-      const underLatternGeometry = new THREE.BoxBufferGeometry(37, 4, 37);
-      const underLattern = new THREE.Mesh(underLatternGeometry, mainLatternMaterial);
-      underLattern.position.y = 302;
-
-      const lampPyramid = new THREE.Geometry();
-      lampPyramid.vertices.push(
-          new THREE.Vector3(-0.4, 0, 0.4),
-          new THREE.Vector3(0.4, 0, 0.4),
-          new THREE.Vector3(-0.5, 1, 0.5),
-          new THREE.Vector3(0.5, 1, 0.5),
-          new THREE.Vector3(-0.4, 0, -0.4),
-          new THREE.Vector3(0.4, 0, -0.4),
-          new THREE.Vector3(-0.5, 1, -0.5),
-          new THREE.Vector3(0.5, 1, -0.5),
-      );
-      lampPyramid.faces.push(
-          new THREE.Face3(0, 3, 2),
-          new THREE.Face3(0, 1, 3),
-          new THREE.Face3(1, 7, 3),
-          new THREE.Face3(1, 5, 7),
-          new THREE.Face3(5, 6, 7),
-          new THREE.Face3(5, 4, 6),
-          new THREE.Face3(4, 2, 6),
-          new THREE.Face3(4, 0, 2),
-          new THREE.Face3(2, 7, 6),
-          new THREE.Face3(2, 3, 7),
-          new THREE.Face3(4, 1, 0),
-          new THREE.Face3(4, 5, 1),
-      );
-
-      const lampTransformation = new THREE.Matrix4().makeScale(42, 60, 42);
-      const lampMaterial = new THREE.MeshPhongMaterial({color: 0xa1b5e9});
-      const lamp = new THREE.Mesh(lampPyramid.applyMatrix4(lampTransformation), lampMaterial);
-      lamp.position.y = 304;
-
-      const upperLatternPyramid = new THREE.Geometry();
-      upperLatternPyramid.vertices.push(
-          new THREE.Vector3(-0.5, 0, 0.5),
-          new THREE.Vector3(0.5, 0, 0.5),
-          new THREE.Vector3(-0.4, 1, 0.4),
-          new THREE.Vector3(0.4, 1, 0.4),
-          new THREE.Vector3(-0.5, 0, -0.5),
-          new THREE.Vector3(0.5, 0, -0.5),
-          new THREE.Vector3(-0.4, 1, -0.4),
-          new THREE.Vector3(0.4, 1, -0.4),
-      );
-      upperLatternPyramid.faces.push(
-          new THREE.Face3(0, 3, 2),
-          new THREE.Face3(0, 1, 3),
-          new THREE.Face3(1, 7, 3),
-          new THREE.Face3(1, 5, 7),
-          new THREE.Face3(5, 6, 7),
-          new THREE.Face3(5, 4, 6),
-          new THREE.Face3(4, 2, 6),
-          new THREE.Face3(4, 0, 2),
-          new THREE.Face3(2, 7, 6),
-          new THREE.Face3(2, 3, 7),
-          new THREE.Face3(4, 1, 0),
-          new THREE.Face3(4, 5, 1),
-      );
-
-      const ulampTransformation = new THREE.Matrix4().makeScale(57, 6, 57);
-      upperLatternPyramid.faces.forEach((face, index) => {
-        if (index === 9 || index === 8) {
-          face.color = new THREE.Color(`#a1b5e9`);
-        } else {
-          face.color = new THREE.Color(`#2b62c7`);
-        }
-      });
-      const upperLMaterial = new THREE.MeshPhongMaterial({vertexColors: THREE.FaceColors});
-      const upperLattern = new THREE.Mesh(upperLatternPyramid.applyMatrix4(ulampTransformation), upperLMaterial);
-      upperLattern.position.y = 364;
-
-      lattern.add(rootBottom);
-      lattern.add(rootTop);
-      lattern.add(middle);
-      lattern.add(underLattern);
-      lattern.add(lamp);
-      lattern.add(upperLattern);
-
-      lattern.position.y = -220;
-      lattern.position.x = 380;
-      lattern.position.z = 20;
-
-      lattern.rotateX((7.5 * Math.PI) / 180);
-      lattern.rotateY((-5 * Math.PI) / 180);
-
-      this.objects.lattern = lattern;
-
-      return lattern;
-    }
-
-    makeSnowman() {
-      const snoman = new THREE.Group();
-      const snomanHead = new THREE.Group();
-      const widthSegments = 40;
-      const heightSegments = 30;
-      const snomanBottomGeometry = new THREE.SphereGeometry(75, widthSegments, heightSegments);
-      const snomanTopGeometry = new THREE.SphereGeometry(44, widthSegments, heightSegments);
-
-      const snowMaterial = new THREE.MeshPhongMaterial({color: 0xFFFFFF});
-      const bottomBall = new THREE.Mesh(snomanBottomGeometry, snowMaterial);
-
-      const topBall = new THREE.Mesh(snomanTopGeometry, snowMaterial);
-      const carrotMaterial = new THREE.MeshPhongMaterial({color: 0xc95629});
-      const carrotGeometry = new THREE.ConeBufferGeometry(18, 75, 50);
-      const carrot = new THREE.Mesh(carrotGeometry, carrotMaterial);
-      carrot.rotateZ((-90 * Math.PI) / 180);
-      carrot.position.x = 44;
-
-      snomanHead.add(topBall);
-      snomanHead.add(carrot);
-      snomanHead.position.y = 109;
-      snomanHead.rotateY((-15 * Math.PI) / 180);
-      snomanHead.rotateZ((-15 * Math.PI) / 180);
-
-      snoman.add(bottomBall);
-      snoman.add(snomanHead);
-      snoman.position.y = -120;
-      snoman.position.x = -130;
-
-      this.objects.snoman = snoman;
-
-      return snoman;
-    }
-
-    makePlaneInstance(geometry, material, index) {
-      const planeGroup = new THREE.Group();
+    prepareSlideInstance(geometry, material, index) {
+      const slidesObjects = {};
+      const slideGroup = new THREE.Group();
       const plane = new THREE.Mesh(geometry, material);
-      planeGroup.add(plane);
+      slideGroup.add(plane);
 
       if (index === 1) {
-        planeGroup.add(this.makePyramid());
-        planeGroup.add(this.makeLattern());
+        // planeGroup.add(this.makePyramid());
+        // planeGroup.add(this.makeLattern());
       }
 
       if (index === 2) {
-        planeGroup.add(this.makeSnowman());
+        // planeGroup.add(this.makeSnowman());
       }
 
-      this.scene.add(planeGroup);
-      planeGroup.position.x = PLANE_WIDTH * index;
+      this.scene.add(slideGroup);
+      slideGroup.position.x = PLANE_WIDTH * index;
 
-      this.objects.planes.push(plane);
+      slidesObjects.plane = plane;
+      this.objects.slides.push(slidesObjects);
     }
 
-    main() {
+    init() {
       const canvas = this.canvas;
       this.renderer = new THREE.WebGLRenderer({canvas});
       this.renderer.setClearColor(0xEEEEEE);
+      this.renderer.setSize(window.innerWidth, window.innerHeight, false);
 
       const fov = 2 * Math.atan(window.innerHeight / (2 * 1000)) * 180 / Math.PI;
       const aspect = window.innerWidth / window.innerHeight;
@@ -253,6 +99,7 @@ export default () => {
         return new THREE.RawShaderMaterial(
             {
               transparent: true,
+              uniformsNeedUpdate: true,
               uniforms: {
                 map: {
                   value: loader.load(scene.src)
@@ -267,7 +114,7 @@ export default () => {
                 },
                 uResolution: {
                   type: `v2`,
-                  value: new THREE.Vector2(window.innerWidth / window.devicePixelRatio, window.innerHeight / window.devicePixelRatio),
+                  value: new THREE.Vector2(window.innerWidth / window.devicePixelRatio / 2, window.innerHeight / window.devicePixelRatio / 2),
                 },
                 uBlurProgress: {
                   type: `f`,
@@ -405,30 +252,29 @@ export default () => {
       });
 
       loadManager.onLoad = () => {
-        this.objects.planes = [];
+        this.objects.slides = [];
 
-        const directionaLight = new THREE.DirectionalLight(new THREE.Color(`rgb(255,255,255)`), 0.95);
-        directionaLight.position.set(50, 0, 200);
-        this.scene.add(directionaLight);
+        const light = sceneObjects.prepareLight(this.camera);
+        this.scene.add(light);
+        this.objects.light = light;
 
         planeMaterials.forEach((material, index) => {
-          this.makePlaneInstance(planeGeometry, material, index);
+          this.prepareSlideInstance(planeGeometry, material, index);
         });
       };
 
-      this.resizeRendererToDisplaySize();
-      window.addEventListener(`resize`, this.resizeRendererToDisplaySize);
+      window.addEventListener(`resize`, this.resizeRenderer);
       canvasFrame.addRender(this.render);
     }
 
     render(time) {
       time *= 0.001;
 
-      if (this.objects.planes && this.objects.planes.length > 0) {
+      if (this.objects.slides && this.objects.slides.length > 0) {
         if (this.toggleBlurAnimation === true) {
           this.toggleBlurAnimation = false;
 
-          animate.easing(this.blurAnimationTick(this.objects.planes[1].material.uniforms.uBlurProgress.value, 1 - this.objects.planes[1].material.uniforms.uBlurProgress.value), 1000, bezierEasing(0.00, 0.0, 0.58, 1.0));
+          animate.easing(this.blurAnimationTick(this.objects.slides[1].plane.material.uniforms.uBlurProgress.value, 1 - this.objects.slides[1].plane.material.uniforms.uBlurProgress.value), 1000, bezierEasing(0.00, 0.0, 0.58, 1.0));
         }
 
         if (this.bubbleAnimation === true) {
@@ -438,41 +284,42 @@ export default () => {
           animate.easing(this.translateAmlitudeModifierTick(1.5, 0.0), 6000, bezierEasing(0.00, 0.0, 0.58, 1.0));
         }
 
-        this.objects.planes[1].material.uniforms.uTime.value = time;
-        this.objects.planes[1].material.uniformsNeedUpdate = true;
+        this.objects.slides[1].plane.material.uniforms.uTime.value = time;
+        this.objects.slides[1].plane.material.uniformsNeedUpdate = true;
       }
 
       this.renderer.render(this.scene, this.camera);
+      this.resizeRenderer();
     }
 
-    resizeRendererToDisplaySize() {
-      const canvasElement = this.renderer.domElement;
-      const pixelRatio = window.devicePixelRatio;
-      const width = canvasElement.clientWidth * pixelRatio | 0;
-      const height = canvasElement.clientHeight * pixelRatio | 0;
-      const needResize = canvasElement.width !== width || canvasElement.height !== height;
-      this.camera.fov = 2 * Math.atan(window.innerHeight / (2 * 1000)) * 180 / Math.PI;
+    resizeRenderer() {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const needResize = this.canvas.width !== width || this.canvas.height !== height;
 
       if (needResize) {
         this.renderer.setSize(width, height, false);
-        this.camera.aspect = canvasElement.clientWidth / canvasElement.clientHeight;
+        this.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
+        this.camera.fov = 2 * Math.atan(window.innerHeight / (2 * 1000)) * 180 / Math.PI;
+        this.camera.updateProjectionMatrix();
 
-        if (this.objects.planes && this.objects.planes.length > 0) {
-          this.objects.planes.forEach((plane) => {
-            plane.material.uniforms.uResolution.value = new THREE.Vector2(window.innerWidth / window.devicePixelRatio, window.innerHeight / window.devicePixelRatio);
-            plane.material.uniformsNeedUpdate = true;
+        this.renderer.setSize(width, height, false);
+        this.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
+
+        if (this.objects.slides && this.objects.slides.length > 0) {
+          this.objects.slides.forEach((slide) => {
+            slide.plane.material.uniforms.uResolution.value = new THREE.Vector2(window.innerWidth / window.devicePixelRatio / 2, window.innerHeight / window.devicePixelRatio / 2);
+            slide.plane.material.uniformsNeedUpdate = true;
           });
         }
 
         this.camera.updateProjectionMatrix();
       }
-
-      return needResize;
     }
 
     blurAnimationTick(from, to) {
       return (progress) => {
-        this.objects.planes[1].material.uniforms.uBlurProgress.value = from + progress * Math.sign(to - from) * Math.abs(to - from);
+        this.objects.slides[1].plane.material.uniforms.uBlurProgress.value = from + progress * Math.sign(to - from) * Math.abs(to - from);
 
         if (progress === 1 && this.blurCounter < 3) {
           this.blurCounter = this.blurCounter + 1;
@@ -484,20 +331,20 @@ export default () => {
 
     translateYAnimationTick(from, to) {
       return (progress) => {
-        this.objects.planes[1].material.uniforms.uTranslateYProgress.value = from + progress * Math.sign(to - from) * Math.abs(to - from);
+        this.objects.slides[1].plane.material.uniforms.uTranslateYProgress.value = from + progress * Math.sign(to - from) * Math.abs(to - from);
       };
     }
 
     translateAmlitudeModifierTick(from, to) {
       return (progress) => {
-        this.objects.planes[1].material.uniforms.uAmplitudeModifier.value = from + progress * Math.sign(to - from) * Math.abs(to - from);
+        this.objects.slides[1].plane.material.uniforms.uAmplitudeModifier.value = from + progress * Math.sign(to - from) * Math.abs(to - from);
       };
     }
   }
 
   if (storyCanvas && storyCanvas.getContext) {
     storyBackground = new StoryBackground(storyCanvas);
-    storyBackground.main();
+    storyBackground.init();
   }
 
   const setSlider = function () {
