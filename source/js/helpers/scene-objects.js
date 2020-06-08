@@ -26,6 +26,7 @@ class SceneObjects {
       color,
       metalness: 0.65,
       roughness: 0.85,
+      side: THREE.DoubleSide,
     });
   }
 
@@ -174,7 +175,7 @@ class SceneObjects {
     return (svgObjects);
   }
 
-  prepareLatheRing(innerRadius, outerRadios, height, segments, startingAngel, finalAngel, color) {
+  prepareLatheRing(innerRadius, outerRadios, height, segments, startingAngel, finalAngel, color, materialType = `default`) {
     const lathePoints = [];
     for (let i = innerRadius; i < outerRadios; i++) {
       for (let j = 0; j < height; j++) {
@@ -184,7 +185,21 @@ class SceneObjects {
     const phiStart = Math.PI * startingAngel / 180;
     const phiLength = Math.PI * (finalAngel - startingAngel) / 180;
     const geometry = new THREE.LatheBufferGeometry(lathePoints, segments, phiStart, phiLength);
-    const material = new THREE.MeshBasicMaterial({color, side: THREE.DoubleSide});
+    let material;
+
+    switch (materialType) {
+      case `soft`:
+        material = this.prepareSoftMaterial(color);
+        break;
+      case `basic`:
+        material = this.prepareBasicMaterial(color);
+        break;
+      case `strong`:
+        material = this.prepareStrongMaterial(color);
+        break;
+      default:
+        material = new THREE.MeshBasicMaterial({color, side: THREE.DoubleSide});
+    }
     const lathe = new THREE.Mesh(geometry, material);
 
     return (lathe);
@@ -218,7 +233,7 @@ class SceneObjects {
     const holder = new THREE.Mesh(holderGeometry, holderMaterial);
     holder.position.y = 560;
 
-    const planetCircle = this.prepareLatheRing(80, 120, 2, 20, 0, 360, 0x7f47ea);
+    const planetCircle = this.prepareLatheRing(80, 120, 2, 20, 0, 360, 0x7f47ea, `soft`);
     planetCircle.rotateZ((18 * Math.PI) / 180);
 
     saturn.add(planet);

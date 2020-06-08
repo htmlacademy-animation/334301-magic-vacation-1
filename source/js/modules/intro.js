@@ -122,8 +122,8 @@ class IntroCanvas {
     this.scene = new THREE.Scene();
 
     const light = sceneObjects.prepareLight(this.camera);
-    const carpet = sceneObjects.prepareCarpet();
-    const road = sceneObjects.prepareRoad();
+    // const carpet = sceneObjects.prepareCarpet();
+    // const road = sceneObjects.prepareRoad();
     const saturn1 = sceneObjects.prepareSaturn(colors.dominantRed, colors.brightPurple);
     const saturn2 = sceneObjects.prepareSaturn(colors.shadowedDominantRed, colors.shadowedBrightPurple);
     const svgObjects = sceneObjects.prepareSvgs(svgItems, this.scene);
@@ -133,8 +133,8 @@ class IntroCanvas {
 
     this.objects = {
       light,
-      carpet,
-      road,
+      // carpet,
+      // road,
       saturn1,
       saturn2,
       svgObjects,
@@ -143,10 +143,10 @@ class IntroCanvas {
       lattern,
     };
 
-    carpet.position.z = 300;
+    // carpet.position.z = 300;
 
-    road.position.y = 20;
-    road.position.z = 100;
+    // road.position.y = 20;
+    // road.position.z = 100;
 
     saturn1.position.x = -150;
 
@@ -166,8 +166,8 @@ class IntroCanvas {
     lattern.rotateY((-5 * Math.PI) / 180);
 
     this.scene.add(light);
-    this.scene.add(carpet);
-    this.scene.add(road);
+    // this.scene.add(carpet);
+    // this.scene.add(road);
     this.scene.add(saturn1);
     this.scene.add(saturn2);
     this.scene.add(pyramid);
