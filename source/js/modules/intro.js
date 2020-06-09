@@ -9,89 +9,93 @@ import colors from '../helpers/colors';
 const introTitle = new AnimatedText(document.querySelector(`.intro__title`));
 const introDate = new AnimatedText(document.querySelector(`.intro__date`));
 
-const svgItems = [
-  {
-    title: `flamingo`,
-    url: `img/flamingo.svg`,
-    height: 85,
-    depth: 8,
-    cap: 2,
-    x: 100,
-    y: 150,
-    z: 30,
-    material: `soft`,
-    color: colors.lightDominantRed,
-  },
-  {
-    title: `snowflake`,
-    url: `img/snowflake.svg`,
-    height: 74,
-    depth: 8,
-    cap: 2,
-    x: 200,
-    y: 200,
-    z: 35,
-    material: `basic`,
-    color: colors.blue,
-  },
-  {
-    title: `question`,
-    url: `img/question.svg`,
-    height: 56,
-    depth: 8,
-    cap: 2,
-    x: -100,
-    y: -100,
-    z: 40,
-    material: `basic`,
-    color: colors.blue,
-  },
-  {
-    title: `keyhole`,
-    url: `img/keyhole.svg`,
-    height: 2000,
-    depth: 20,
-    cap: 2,
-    x: 1000,
-    y: 1000,
-    z: -300,
-    material: `soft`,
-    color: colors.darkPurple,
-  },
-  {
-    title: `leafKeyhole`,
-    url: `img/leaf.svg`,
-    height: 117,
-    depth: 8,
-    cap: 2,
-    x: 100,
-    y: -100,
-    z: 45,
-    material: `basic`,
-    color: colors.green,
-  },
-  {
-    title: `leafRoom2`,
-    url: `img/leaf.svg`,
-    height: 335.108,
-    depth: 3,
-    cap: 3,
-    x: 500,
-    y: 300,
-    z: 55,
-    material: `basic`,
-    color: colors.green,
-  },
-];
-
 class IntroCanvas {
   constructor(canvas) {
     this.canvas = canvas;
     this.objects = {};
+    this.svgItems = [
+      {
+        title: `flamingo`,
+        url: `img/flamingo.svg`,
+        height: 85,
+        depth: 8,
+        cap: 2,
+        x: 100,
+        y: 150,
+        z: 30,
+        material: `soft`,
+        color: colors.lightDominantRed,
+      },
+      {
+        title: `snowflake`,
+        url: `img/snowflake.svg`,
+        height: 74,
+        depth: 8,
+        cap: 2,
+        x: 200,
+        y: 200,
+        z: 35,
+        material: `basic`,
+        color: colors.blue,
+      },
+      {
+        title: `question`,
+        url: `img/question.svg`,
+        height: 56,
+        depth: 8,
+        cap: 2,
+        x: -100,
+        y: -100,
+        z: 40,
+        material: `basic`,
+        color: colors.blue,
+      },
+      {
+        title: `keyhole`,
+        url: `img/keyhole.svg`,
+        height: 2000,
+        depth: 20,
+        cap: 2,
+        x: 1000,
+        y: 1000,
+        z: -300,
+        material: `soft`,
+        color: colors.darkPurple,
+      },
+      {
+        title: `leafKeyhole`,
+        url: `img/leaf.svg`,
+        height: 117,
+        depth: 8,
+        cap: 2,
+        x: 100,
+        y: -100,
+        z: 45,
+        material: `basic`,
+        color: colors.green,
+      },
+      {
+        title: `leafRoom2`,
+        url: `img/leaf.svg`,
+        height: 335.108,
+        depth: 3,
+        cap: 3,
+        x: 500,
+        y: 300,
+        z: 55,
+        material: `basic`,
+        color: colors.green,
+      },
+    ];
 
     this.init = this.init.bind(this);
     this.render = this.render.bind(this);
     this.resizeRenderer = this.resizeRenderer.bind(this);
+    this.addObject = this.addObject.bind(this);
+  }
+
+  addObject(title, object) {
+    this.objects[`${title}`] = object;
   }
 
   init() {
@@ -122,31 +126,31 @@ class IntroCanvas {
     this.scene = new THREE.Scene();
 
     const light = sceneObjects.prepareLight(this.camera);
-    // const carpet = sceneObjects.prepareCarpet();
-    // const road = sceneObjects.prepareRoad();
+    const carpet = sceneObjects.prepareCarpet();
+    const road = sceneObjects.prepareRoad();
     const saturn1 = sceneObjects.prepareSaturn(colors.dominantRed, colors.brightPurple);
     const saturn2 = sceneObjects.prepareSaturn(colors.shadowedDominantRed, colors.shadowedBrightPurple);
-    const svgObjects = sceneObjects.prepareSvgs(svgItems, this.scene);
     const pyramid = sceneObjects.preparePyramid();
     const snowman = sceneObjects.prepareSnowman();
     const lattern = sceneObjects.prepareLattern();
+    // sceneObjects.prepareSvgs(this.svgItems, this.scene, this.addObject);
+    sceneObjects.prepare3dObj(this.scene, this.addObject, `img/airplane.obj`, `airplane`, `basic`, colors.white, 200, 0, 0);
+    sceneObjects.prepareGltfObj(this.scene, this.addObject, `img/suitcase.gltf`, `suitcase`, -200, 0, 0);
+    sceneObjects.prepareGltfObj(this.scene, this.addObject, `img/watermelon.gltf`, `suitcase`, 0, -200, 0);
 
-    this.objects = {
-      light,
-      // carpet,
-      // road,
-      saturn1,
-      saturn2,
-      svgObjects,
-      pyramid,
-      snowman,
-      lattern,
-    };
+    this.addObject(`light`, light);
+    this.addObject(`carpet`, carpet);
+    this.addObject(`road`, road);
+    this.addObject(`saturn1`, saturn1);
+    this.addObject(`saturn2`, saturn2);
+    this.addObject(`pyramid`, pyramid);
+    this.addObject(`snowman`, snowman);
+    this.addObject(`lattern`, lattern);
 
-    // carpet.position.z = 300;
+    carpet.position.z = 300;
 
-    // road.position.y = 20;
-    // road.position.z = 100;
+    road.position.y = 20;
+    road.position.z = 100;
 
     saturn1.position.x = -150;
 
@@ -168,11 +172,11 @@ class IntroCanvas {
     this.scene.add(light);
     // this.scene.add(carpet);
     // this.scene.add(road);
-    this.scene.add(saturn1);
-    this.scene.add(saturn2);
-    this.scene.add(pyramid);
-    this.scene.add(snowman);
-    this.scene.add(lattern);
+    // this.scene.add(saturn1);
+    // this.scene.add(saturn2);
+    // this.scene.add(pyramid);
+    // this.scene.add(snowman);
+    // this.scene.add(lattern);
 
     canvasFrame.addRender(this.render);
     window.addEventListener(`resize`, this.resizeRenderer);

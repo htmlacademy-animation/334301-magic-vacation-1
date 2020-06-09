@@ -1,12 +1,19 @@
 import * as THREE from "three";
 import {SVGLoader} from "three/examples/jsm/loaders/SVGLoader";
+import {OBJLoader} from "three/examples/jsm/loaders/OBJLoader";
+import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 
 import colors from './colors';
 
 class SceneObjects {
   constructor() {
+    this.obgjLoader = new OBJLoader();
+    this.gltfLoader = new GLTFLoader();
+
     this.prepareLight = this.prepareLight.bind(this);
     this.prepareSvgs = this.prepareSvgs.bind(this);
+    this.prepare3dObj = this.prepare3dObj.bind(this);
+    this.prepareGltfObj = this.prepareGltfObj.bind(this);
     this.prepareLatheRing = this.prepareLatheRing.bind(this);
     this.prepareCarpet = this.prepareCarpet.bind(this);
     this.prepareRoad = this.prepareRoad.bind(this);
@@ -15,10 +22,30 @@ class SceneObjects {
     this.prepareLattern = this.prepareLattern.bind(this);
     this.prepareSnowman = this.prepareSnowman.bind(this);
 
-
     this.prepareSoftMaterial = this.prepareSoftMaterial.bind(this);
     this.prepareBasicMaterial = this.prepareBasicMaterial.bind(this);
     this.prepareStrongMaterial = this.prepareStrongMaterial.bind(this);
+    this.selectMaterial = this.selectMaterial.bind(this);
+  }
+
+  selectMaterial(materialType, color) {
+    let material;
+
+    switch (materialType) {
+      case `soft`:
+        material = this.prepareSoftMaterial(color);
+        break;
+      case `basic`:
+        material = this.prepareBasicMaterial(color);
+        break;
+      case `strong`:
+        material = this.prepareStrongMaterial(color);
+        break;
+      default:
+        material = new THREE.MeshBasicMaterial({color, side: THREE.DoubleSide});
+    }
+
+    return material;
   }
 
   prepareSoftMaterial(color) {
@@ -76,9 +103,9 @@ class SceneObjects {
     return light;
   }
 
-  prepareSvgs(svgsData, scene) {
+  prepareSvgs(svgsData, scene, addObjectFunc) {
     const loader = new SVGLoader();
-    const svgObjects = [];
+    const svgObjects = {};
 
     svgsData.forEach((svg) => {
       loader.load(
@@ -89,21 +116,8 @@ class SceneObjects {
 
             for (let i = 0; i < paths.length; i++) {
               const path = paths[i];
-              let shapeMaterial;
+              const shapeMaterial = this.selectMaterial(svg.material, svg.color);
 
-              switch (svg.material) {
-                case `soft`:
-                  shapeMaterial = this.prepareSoftMaterial(svg.color);
-                  break;
-                case `basic`:
-                  shapeMaterial = this.prepareBasicMaterial(svg.color);
-                  break;
-                default:
-                  shapeMaterial = new THREE.MeshBasicMaterial({
-                    color: path.color,
-                    side: THREE.DoubleSide,
-                  });
-              }
               shapeMaterial.opacity = path.userData.style.fillOpacity;
               shapeMaterial.transparent = path.userData.style.fillOpacity < 1;
 
@@ -136,10 +150,7 @@ class SceneObjects {
             svgGroup.scale.multiplyScalar(scaleValue);
 
             const title = svg.title;
-            svgObjects.push({
-              title,
-              object: svgGroup,
-            });
+            svgObjects[`${title}`] = svgGroup;
 
             if (title === `keyhole`) {
               const keyholeGroup = new THREE.Group();
@@ -172,7 +183,37 @@ class SceneObjects {
       );
     });
 
-    return (svgObjects);
+    addObjectFunc(`svgObjects`, svgObjects);
+  }
+
+  prepare3dObj(scene, addObjectFunc, url, title, color, materialType, x = 0, y = 0, z = 0) {
+    this.obgjLoader.load(
+        url,
+        (obj) => {
+          obj.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+              child.material = this.selectMaterial(materialType, color);
+            }
+          });
+          obj.position.set(x, y, z);
+
+          addObjectFunc(title, obj);
+          scene.add(obj);
+        }
+    );
+  }
+
+  prepareGltfObj(scene, addObjectFunc, url, title, x = 0, y = 0, z = 0) {
+    this.gltfLoader.load(
+        url,
+        (gltf) => {
+          const root = gltf.scene;
+          root.position.set(x, y, z);
+
+          addObjectFunc(title, root);
+          scene.add(root);
+        }
+    );
   }
 
   prepareLatheRing(innerRadius, outerRadios, height, segments, startingAngel, finalAngel, color, materialType = `default`) {
@@ -185,34 +226,48 @@ class SceneObjects {
     const phiStart = Math.PI * startingAngel / 180;
     const phiLength = Math.PI * (finalAngel - startingAngel) / 180;
     const geometry = new THREE.LatheBufferGeometry(lathePoints, segments, phiStart, phiLength);
-    let material;
+    const material = this.selectMaterial(materialType, color);
 
-    switch (materialType) {
-      case `soft`:
-        material = this.prepareSoftMaterial(color);
-        break;
-      case `basic`:
-        material = this.prepareBasicMaterial(color);
-        break;
-      case `strong`:
-        material = this.prepareStrongMaterial(color);
-        break;
-      default:
-        material = new THREE.MeshBasicMaterial({color, side: THREE.DoubleSide});
-    }
     const lathe = new THREE.Mesh(geometry, material);
 
     return (lathe);
   }
 
   prepareCarpet() {
-    const carpet = this.prepareLatheRing(763, 943, 3, 40, 16, 74, 0xffff00);
+    const carpet = new THREE.Group();
+    const carpetPartsNumber = 7;
+    const carpetStep = 74 / carpetPartsNumber;
+
+    for (let i = 0; i < carpetPartsNumber; i++) {
+      const startingAngel = 16 + carpetStep * i;
+      const finalAngel = 16 + carpetStep * (i + 1);
+      const blockColor = i % 2 === 0 ? colors.purple : colors.additionalPurple;
+      const carpetBlock = this.prepareLatheRing(763, 943, 3, 40, startingAngel, finalAngel, blockColor, `soft`);
+
+      carpet.add(carpetBlock);
+    }
 
     return carpet;
   }
 
   prepareRoad() {
-    const road = this.prepareLatheRing(732, 892, 3, 40, 0, 90, 0x4eb543);
+    const road = new THREE.Group();
+    const roadBody = this.prepareLatheRing(732, 892, 3, 40, 0, 90, colors.grey, `soft`);
+    road.add(roadBody);
+    const lineLength = 90 / 12;
+
+    let startingAngel = lineLength;
+
+    for (let i = 0; i < 4; i++) {
+      const finalAngel = startingAngel + lineLength;
+
+      const roadLine = this.prepareLatheRing(802, 822, 1, 40, startingAngel, finalAngel, colors.white, `soft`);
+      roadLine.position.y = 3;
+      road.add(roadLine);
+
+      startingAngel = finalAngel + 2 * lineLength;
+    }
+
 
     return road;
   }
