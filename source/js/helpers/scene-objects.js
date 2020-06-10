@@ -5,6 +5,8 @@ import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 
 import colors from './colors';
 
+const degToRadians = (deg) => (deg * Math.PI) / 180;
+
 class SceneObjects {
   constructor() {
     this.obgjLoader = new OBJLoader();
@@ -133,7 +135,7 @@ class SceneObjects {
                   bevelSize: svg.cap,
                 };
 
-                const extrudeGeometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
+                const extrudeGeometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
                 const shapeMesh = new THREE.Mesh(extrudeGeometry, shapeMaterial);
                 svgGroup.add(shapeMesh);
               }
@@ -146,7 +148,9 @@ class SceneObjects {
             svgGroup.position.x = svg.x;
             svgGroup.position.y = svg.y;
             svgGroup.position.z = svg.z;
-            svgGroup.rotateZ((180 * Math.PI) / 180);
+            svgGroup.rotateX((svg.rotX * Math.PI) / 180);
+            svgGroup.rotateY((svg.rotY * Math.PI) / 180);
+            svgGroup.rotateZ((svg.rotZ * Math.PI) / 180);
             svgGroup.scale.multiplyScalar(scaleValue);
 
             const title = svg.title;
@@ -186,7 +190,7 @@ class SceneObjects {
     addObjectFunc(`svgObjects`, svgObjects);
   }
 
-  prepare3dObj(scene, addObjectFunc, url, title, color, materialType, x = 0, y = 0, z = 0) {
+  prepare3dObj(scene, addObjectFunc, url, title, color, materialType, x = 0, y = 0, z = 0, rotX = 0, rotY = 0, rotZ = 0, scaleValue = 1) {
     this.obgjLoader.load(
         url,
         (obj) => {
@@ -196,19 +200,22 @@ class SceneObjects {
             }
           });
           obj.position.set(x, y, z);
-
+          obj.rotation.copy(new THREE.Euler(degToRadians(rotX), degToRadians(rotY), degToRadians(rotZ), `XYZ`));
           addObjectFunc(title, obj);
+          obj.scale.set(scaleValue, scaleValue, scaleValue);
           scene.add(obj);
         }
     );
   }
 
-  prepareGltfObj(scene, addObjectFunc, url, title, x = 0, y = 0, z = 0) {
+  prepareGltfObj(scene, addObjectFunc, url, title, x = 0, y = 0, z = 0, rotX = 0, rotY = 0, rotZ = 0, scaleValue = 1) {
     this.gltfLoader.load(
         url,
         (gltf) => {
           const root = gltf.scene;
           root.position.set(x, y, z);
+          root.rotation.copy(new THREE.Euler(degToRadians(rotX), degToRadians(rotY), degToRadians(rotZ), `XYZ`));
+          root.scale.set(scaleValue, scaleValue, scaleValue);
 
           addObjectFunc(title, root);
           scene.add(root);
@@ -272,28 +279,32 @@ class SceneObjects {
     return road;
   }
 
-  prepareSaturn(planetColor, smallPlanetColor) {
+  prepareSaturn(planetColor, smallPlanetColor, noHolder = false) {
     const saturn = new THREE.Group();
     const planetGeometry = new THREE.SphereGeometry(60, 30, 30);
     const planetMaterial = this.prepareSoftMaterial(planetColor);
     const planet = new THREE.Mesh(planetGeometry, planetMaterial);
 
-    const smallPlanetGeometry = new THREE.SphereGeometry(10, 30, 30);
-    const smallPlanetMaterial = this.prepareSoftMaterial(smallPlanetColor);
-    const smallPlanet = new THREE.Mesh(smallPlanetGeometry, smallPlanetMaterial);
-    smallPlanet.position.y = 120;
 
-    const holderGeometry = new THREE.CylinderBufferGeometry(1, 1, 1000, 10);
-    const holderMaterial = this.prepareSoftMaterial(colors.metalGrey);
-    const holder = new THREE.Mesh(holderGeometry, holderMaterial);
-    holder.position.y = 560;
+    if (noHolder === false) {
+      const smallPlanetGeometry = new THREE.SphereGeometry(10, 30, 30);
+      const smallPlanetMaterial = this.prepareSoftMaterial(smallPlanetColor);
+      const smallPlanet = new THREE.Mesh(smallPlanetGeometry, smallPlanetMaterial);
+      smallPlanet.position.y = 120;
+
+      const holderGeometry = new THREE.CylinderBufferGeometry(1, 1, 1000, 10);
+      const holderMaterial = this.prepareSoftMaterial(colors.metalGrey);
+      const holder = new THREE.Mesh(holderGeometry, holderMaterial);
+      holder.position.y = 560;
+
+      saturn.add(holder);
+      saturn.add(smallPlanet);
+    }
 
     const planetCircle = this.prepareLatheRing(80, 120, 2, 20, 0, 360, 0x7f47ea, `soft`);
     planetCircle.rotateZ((18 * Math.PI) / 180);
 
     saturn.add(planet);
-    saturn.add(smallPlanet);
-    saturn.add(holder);
     saturn.add(planetCircle);
 
     return saturn;

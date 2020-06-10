@@ -5,9 +5,12 @@ import AnimatedText from './animated-text';
 import canvasFrame from '../helpers/canvas-frame';
 import sceneObjects from '../helpers/scene-objects';
 import colors from '../helpers/colors';
+const CAMERA_DIST = 1405;
 
 const introTitle = new AnimatedText(document.querySelector(`.intro__title`));
 const introDate = new AnimatedText(document.querySelector(`.intro__date`));
+
+const degToRadians = (deg) => (deg * Math.PI) / 180;
 
 class IntroCanvas {
   constructor(canvas) {
@@ -15,14 +18,32 @@ class IntroCanvas {
     this.objects = {};
     this.svgItems = [
       {
+        title: `keyhole`,
+        url: `img/keyhole.svg`,
+        height: 2000,
+        depth: 20,
+        cap: 2,
+        x: 1000,
+        y: 1000,
+        z: 0,
+        rotX: 0,
+        rotY: 0,
+        rotZ: 180,
+        material: `soft`,
+        color: colors.darkPurple,
+      },
+      {
         title: `flamingo`,
         url: `img/flamingo.svg`,
         height: 85,
         depth: 8,
         cap: 2,
-        x: 100,
-        y: 150,
-        z: 30,
+        x: -400,
+        y: 300,
+        z: 75,
+        rotX: -10,
+        rotY: 15,
+        rotZ: 2000,
         material: `soft`,
         color: colors.lightDominantRed,
       },
@@ -32,9 +53,12 @@ class IntroCanvas {
         height: 74,
         depth: 8,
         cap: 2,
-        x: 200,
-        y: 200,
-        z: 35,
+        x: -275,
+        y: 50,
+        z: 60,
+        rotX: 10,
+        rotY: 35,
+        rotZ: 10,
         material: `basic`,
         color: colors.blue,
       },
@@ -44,23 +68,14 @@ class IntroCanvas {
         height: 56,
         depth: 8,
         cap: 2,
-        x: -100,
-        y: -100,
-        z: 40,
+        x: 110,
+        y: -250,
+        z: 80,
+        rotX: -40,
+        rotY: 180,
+        rotZ: 160,
         material: `basic`,
         color: colors.blue,
-      },
-      {
-        title: `keyhole`,
-        url: `img/keyhole.svg`,
-        height: 2000,
-        depth: 20,
-        cap: 2,
-        x: 1000,
-        y: 1000,
-        z: -300,
-        material: `soft`,
-        color: colors.darkPurple,
       },
       {
         title: `leafKeyhole`,
@@ -68,21 +83,12 @@ class IntroCanvas {
         height: 117,
         depth: 8,
         cap: 2,
-        x: 100,
-        y: -100,
-        z: 45,
-        material: `basic`,
-        color: colors.green,
-      },
-      {
-        title: `leafRoom2`,
-        url: `img/leaf.svg`,
-        height: 335.108,
-        depth: 3,
-        cap: 3,
-        x: 500,
-        y: 300,
-        z: 55,
+        x: 400,
+        y: 250,
+        z: 110,
+        rotX: -20,
+        rotY: 140,
+        rotZ: 260,
         material: `basic`,
         color: colors.green,
       },
@@ -113,70 +119,36 @@ class IntroCanvas {
     this.renderer.setSize(initialWidth, initialHeight);
 
     const params = {
-      fov: 2 * Math.atan((window.innerHeight) / (2 * 1000)) * 180 / Math.PI,
+      fov: 2 * Math.atan((window.innerHeight) / (2 * CAMERA_DIST)) * 180 / Math.PI,
       aspect: initialWidth / initialHeight,
       near: 0.1,
       far: 10000
     };
     this.camera = new THREE.PerspectiveCamera(params.fov, params.aspect, params.near, params.far);
-    this.camera.position.z = 2000;
+    this.camera.position.z = CAMERA_DIST;
 
     this.controls = new OrbitControls(this.camera, canvas);
 
     this.scene = new THREE.Scene();
 
     const light = sceneObjects.prepareLight(this.camera);
-    const carpet = sceneObjects.prepareCarpet();
-    const road = sceneObjects.prepareRoad();
-    const saturn1 = sceneObjects.prepareSaturn(colors.dominantRed, colors.brightPurple);
-    const saturn2 = sceneObjects.prepareSaturn(colors.shadowedDominantRed, colors.shadowedBrightPurple);
-    const pyramid = sceneObjects.preparePyramid();
-    const snowman = sceneObjects.prepareSnowman();
-    const lattern = sceneObjects.prepareLattern();
-    // sceneObjects.prepareSvgs(this.svgItems, this.scene, this.addObject);
-    sceneObjects.prepare3dObj(this.scene, this.addObject, `img/airplane.obj`, `airplane`, `basic`, colors.white, 200, 0, 0);
-    sceneObjects.prepareGltfObj(this.scene, this.addObject, `img/suitcase.gltf`, `suitcase`, -200, 0, 0);
-    sceneObjects.prepareGltfObj(this.scene, this.addObject, `img/watermelon.gltf`, `suitcase`, 0, -200, 0);
+    const saturn = sceneObjects.prepareSaturn(colors.shadowedDominantRed, colors.shadowedBrightPurple, true);
+    sceneObjects.prepareSvgs(this.svgItems, this.scene, this.addObject);
+    sceneObjects.prepare3dObj(this.scene, this.addObject, `img/airplane.obj`, `airplane`, colors.white, `basic`, 200, 75, 100, 60, 140, -15);
+    sceneObjects.prepareGltfObj(this.scene, this.addObject, `img/suitcase.gltf`, `suitcase`, -80, -175, 50, 20, 220, 10, 0.5);
+    sceneObjects.prepareGltfObj(this.scene, this.addObject, `img/watermelon.gltf`, `watermelon`, -450, -175, 100, 15, 160, 40, 1.5);
 
     this.addObject(`light`, light);
-    this.addObject(`carpet`, carpet);
-    this.addObject(`road`, road);
-    this.addObject(`saturn1`, saturn1);
-    this.addObject(`saturn2`, saturn2);
-    this.addObject(`pyramid`, pyramid);
-    this.addObject(`snowman`, snowman);
-    this.addObject(`lattern`, lattern);
+    this.addObject(`saturn`, saturn);
 
-    carpet.position.z = 300;
-
-    road.position.y = 20;
-    road.position.z = 100;
-
-    saturn1.position.x = -150;
-
-    saturn2.position.x = 150;
-
-    pyramid.position.x = -200;
-    pyramid.position.y = -200;
-    pyramid.rotateY((-5 * Math.PI) / 180);
-
-    snowman.position.x = 330;
-    snowman.position.y = 330;
-
-    lattern.position.x = 250;
-    lattern.position.y = 250;
-    lattern.position.z = 100;
-    lattern.rotateX((7.5 * Math.PI) / 180);
-    lattern.rotateY((-5 * Math.PI) / 180);
+    saturn.position.x = 400;
+    saturn.position.y = -200;
+    saturn.position.z = 100;
+    saturn.scale.set(0.5, 0.5, 0.5);
+    saturn.rotation.copy(new THREE.Euler(degToRadians(10), degToRadians(0), degToRadians(10), `XYZ`));
 
     this.scene.add(light);
-    // this.scene.add(carpet);
-    // this.scene.add(road);
-    // this.scene.add(saturn1);
-    // this.scene.add(saturn2);
-    // this.scene.add(pyramid);
-    // this.scene.add(snowman);
-    // this.scene.add(lattern);
+    this.scene.add(saturn);
 
     canvasFrame.addRender(this.render);
     window.addEventListener(`resize`, this.resizeRenderer);
@@ -190,7 +162,7 @@ class IntroCanvas {
     if (needResize) {
       this.renderer.setSize(width, height);
       this.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
-      this.camera.fov = 2 * Math.atan(window.innerHeight / (2 * 1000)) * 180 / Math.PI;
+      this.camera.fov = 2 * Math.atan(window.innerHeight / (2 * CAMERA_DIST)) * 180 / Math.PI;
       this.camera.updateProjectionMatrix();
     }
   }
