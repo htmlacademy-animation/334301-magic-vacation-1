@@ -97,11 +97,6 @@ class IntroCanvas {
     this.init = this.init.bind(this);
     this.render = this.render.bind(this);
     this.resizeRenderer = this.resizeRenderer.bind(this);
-    this.addObject = this.addObject.bind(this);
-  }
-
-  addObject(title, object) {
-    this.objects[`${title}`] = object;
   }
 
   async init() {
@@ -138,12 +133,14 @@ class IntroCanvas {
     const suitcase = await sceneObjects.prepareGltfObj(`img/suitcase.gltf`);
     const watermelon = await sceneObjects.prepareGltfObj(`img/watermelon.gltf`);
 
-    this.addObject(`light`, light);
-    this.addObject(`saturn`, saturn);
-    this.addObject(`svgObjects`, svgObjects);
-    this.addObject(`airplane`, airplane);
-    this.addObject(`suitcase`, suitcase);
-    this.addObject(`watermelon`, watermelon);
+    this.objects = {
+      light,
+      saturn,
+      svgObjects,
+      airplane,
+      suitcase,
+      watermelon,
+    };
 
     saturn.position.set(400, -200, 100);
     saturn.rotation.copy(new THREE.Euler(degToRadians(10), degToRadians(0), degToRadians(10), `XYZ`));

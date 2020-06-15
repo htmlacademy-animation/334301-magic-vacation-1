@@ -21,6 +21,7 @@ class SceneObjects {
     this.preparePyramid = this.preparePyramid.bind(this);
     this.prepareLattern = this.prepareLattern.bind(this);
     this.prepareSnowman = this.prepareSnowman.bind(this);
+    this.prepareCircle = this.prepareCircle.bind(this);
 
     this.prepareSoftMaterial = this.prepareSoftMaterial.bind(this);
     this.prepareBasicMaterial = this.prepareBasicMaterial.bind(this);
@@ -239,7 +240,7 @@ class SceneObjects {
   prepareCarpet() {
     const carpet = new THREE.Group();
     const carpetPartsNumber = 7;
-    const carpetStep = 74 / carpetPartsNumber;
+    const carpetStep = 54 / carpetPartsNumber;
 
     for (let i = 0; i < carpetPartsNumber; i++) {
       const startingAngel = 16 + carpetStep * i;
@@ -432,6 +433,18 @@ class SceneObjects {
     snowman.add(snowmanHead);
 
     return snowman;
+  }
+
+  prepareCircle(radius, startingAngel = 0, finalAngel = 360, color, materialType = `default`) {
+    const thetaStart = Math.PI * startingAngel / 180;
+    const thetaLength = Math.PI * (finalAngel - startingAngel) / 180;
+    const circleGeometry = new THREE.CircleBufferGeometry(radius, 20, thetaStart, thetaLength);
+
+    const material = this.selectMaterial(materialType, color);
+
+    const circle = new THREE.Mesh(circleGeometry, material);
+
+    return (circle);
   }
 }
 
