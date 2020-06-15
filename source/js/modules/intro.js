@@ -104,7 +104,7 @@ class IntroCanvas {
     this.objects[`${title}`] = object;
   }
 
-  init() {
+  async init() {
     const initialWidth = window.innerWidth;
     const initialHeight = window.innerHeight;
 
@@ -133,22 +133,38 @@ class IntroCanvas {
 
     const light = sceneObjects.prepareLight(this.camera);
     const saturn = sceneObjects.prepareSaturn(colors.shadowedDominantRed, colors.shadowedBrightPurple, true);
-    sceneObjects.prepareSvgs(this.svgItems, this.scene, this.addObject);
-    sceneObjects.prepare3dObj(this.scene, this.addObject, `img/airplane.obj`, `airplane`, colors.white, `basic`, 200, 75, 100, 60, 140, -15);
-    sceneObjects.prepareGltfObj(this.scene, this.addObject, `img/suitcase.gltf`, `suitcase`, -80, -175, 50, 20, 220, 10, 0.5);
-    sceneObjects.prepareGltfObj(this.scene, this.addObject, `img/watermelon.gltf`, `watermelon`, -450, -175, 100, 15, 160, 40, 1.5);
+    const svgObjects = await sceneObjects.prepareSvgs(this.svgItems, this.scene);
+    const airplane = await sceneObjects.prepare3dObj(`img/airplane.obj`, colors.white, `basic`);
+    const suitcase = await sceneObjects.prepareGltfObj(`img/suitcase.gltf`);
+    const watermelon = await sceneObjects.prepareGltfObj(`img/watermelon.gltf`);
 
     this.addObject(`light`, light);
     this.addObject(`saturn`, saturn);
+    this.addObject(`svgObjects`, svgObjects);
+    this.addObject(`airplane`, airplane);
+    this.addObject(`suitcase`, suitcase);
+    this.addObject(`watermelon`, watermelon);
 
-    saturn.position.x = 400;
-    saturn.position.y = -200;
-    saturn.position.z = 100;
-    saturn.scale.set(0.5, 0.5, 0.5);
+    saturn.position.set(400, -200, 100);
     saturn.rotation.copy(new THREE.Euler(degToRadians(10), degToRadians(0), degToRadians(10), `XYZ`));
+    saturn.scale.set(0.5, 0.5, 0.5);
+
+    airplane.position.set(200, 75, 100);
+    airplane.rotation.copy(new THREE.Euler(degToRadians(60), degToRadians(140), degToRadians(-15), `XYZ`));
+
+    suitcase.position.set(-80, -175, 50);
+    suitcase.rotation.copy(new THREE.Euler(degToRadians(20), degToRadians(220), degToRadians(10), `XYZ`));
+    suitcase.scale.set(0.5, 0.5, 0.5);
+
+    watermelon.position.set(-450, -175, 100);
+    watermelon.rotation.copy(new THREE.Euler(degToRadians(15), degToRadians(160), degToRadians(40), `XYZ`));
+    watermelon.scale.set(1.5, 1.5, 1.5);
 
     this.scene.add(light);
     this.scene.add(saturn);
+    this.scene.add(airplane);
+    this.scene.add(suitcase);
+    this.scene.add(watermelon);
 
     canvasFrame.addRender(this.render);
     window.addEventListener(`resize`, this.resizeRenderer);

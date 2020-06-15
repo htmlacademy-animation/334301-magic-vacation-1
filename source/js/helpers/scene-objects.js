@@ -5,8 +5,6 @@ import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 
 import colors from './colors';
 
-const degToRadians = (deg) => (deg * Math.PI) / 180;
-
 class SceneObjects {
   constructor() {
     this.obgjLoader = new OBJLoader();
@@ -105,122 +103,120 @@ class SceneObjects {
     return light;
   }
 
-  prepareSvgs(svgsData, scene, addObjectFunc) {
-    const loader = new SVGLoader();
-    const svgObjects = {};
+  prepareSvgs(svgsData, scene) {
+    return new Promise((resolve) => {
+      const loader = new SVGLoader();
+      const svgObjects = {};
 
-    svgsData.forEach((svg) => {
-      loader.load(
-          svg.url,
-          (svgData) => {
-            const paths = svgData.paths;
-            const svgGroup = new THREE.Group();
+      svgsData.forEach((svg) => {
+        loader.load(
+            svg.url,
+            (svgData) => {
+              const paths = svgData.paths;
+              const svgGroup = new THREE.Group();
 
-            for (let i = 0; i < paths.length; i++) {
-              const path = paths[i];
-              const shapeMaterial = this.selectMaterial(svg.material, svg.color);
+              for (let i = 0; i < paths.length; i++) {
+                const path = paths[i];
+                const shapeMaterial = this.selectMaterial(svg.material, svg.color);
 
-              shapeMaterial.opacity = path.userData.style.fillOpacity;
-              shapeMaterial.transparent = path.userData.style.fillOpacity < 1;
+                shapeMaterial.opacity = path.userData.style.fillOpacity;
+                shapeMaterial.transparent = path.userData.style.fillOpacity < 1;
 
-              const shapes = path.toShapes(true);
+                const shapes = path.toShapes(true);
 
-              for (let j = 0; j < shapes.length; j++) {
-                const shape = shapes[j];
-                const extrudeSettings = {
-                  steps: 1,
-                  depth: svg.depth,
-                  bevelEnabled: true,
-                  bevelThickness: svg.cap,
-                  bevelSize: svg.cap,
-                };
+                for (let j = 0; j < shapes.length; j++) {
+                  const shape = shapes[j];
+                  const extrudeSettings = {
+                    steps: 1,
+                    depth: svg.depth,
+                    bevelEnabled: true,
+                    bevelThickness: svg.cap,
+                    bevelSize: svg.cap,
+                  };
 
-                const extrudeGeometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-                const shapeMesh = new THREE.Mesh(extrudeGeometry, shapeMaterial);
-                svgGroup.add(shapeMesh);
+                  const extrudeGeometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+                  const shapeMesh = new THREE.Mesh(extrudeGeometry, shapeMaterial);
+                  svgGroup.add(shapeMesh);
+                }
               }
-            }
 
-            const box = new THREE.Box3().setFromObject(svgGroup);
-            const size = new THREE.Vector3();
-            box.getSize(size);
-            let scaleValue = svg.height / size.y;
-            svgGroup.position.x = svg.x;
-            svgGroup.position.y = svg.y;
-            svgGroup.position.z = svg.z;
-            svgGroup.rotateX((svg.rotX * Math.PI) / 180);
-            svgGroup.rotateY((svg.rotY * Math.PI) / 180);
-            svgGroup.rotateZ((svg.rotZ * Math.PI) / 180);
-            svgGroup.scale.multiplyScalar(scaleValue);
+              const box = new THREE.Box3().setFromObject(svgGroup);
+              const size = new THREE.Vector3();
+              box.getSize(size);
+              let scaleValue = svg.height / size.y;
+              svgGroup.position.x = svg.x;
+              svgGroup.position.y = svg.y;
+              svgGroup.position.z = svg.z;
+              svgGroup.rotateX((svg.rotX * Math.PI) / 180);
+              svgGroup.rotateY((svg.rotY * Math.PI) / 180);
+              svgGroup.rotateZ((svg.rotZ * Math.PI) / 180);
+              svgGroup.scale.multiplyScalar(scaleValue);
 
-            const title = svg.title;
-            svgObjects[`${title}`] = svgGroup;
+              const title = svg.title;
+              svgObjects[`${title}`] = svgGroup;
 
-            if (title === `keyhole`) {
-              const keyholeGroup = new THREE.Group();
-              const svgBox = new THREE.Box3().setFromObject(svgGroup);
+              if (title === `keyhole`) {
+                const keyholeGroup = new THREE.Group();
+                const svgBox = new THREE.Box3().setFromObject(svgGroup);
 
-              const backWidth = svgBox.max.x - svgBox.min.x;
-              const backHeight = svg.height;
-              const backDepth = 0;
-              const backWidthSegments = 1;
-              const backHeightSegments = 1;
-              const backDepthSegments = 1;
-              const backGeometry = new THREE.BoxBufferGeometry(
-                  backWidth, backHeight, backDepth,
-                  backWidthSegments, backHeightSegments, backDepthSegments);
-              const backMaterial = new THREE.MeshBasicMaterial({
-                color: colors.brightPurple,
-              });
-              const back = new THREE.Mesh(backGeometry, backMaterial);
+                const backWidth = svgBox.max.x - svgBox.min.x;
+                const backHeight = svg.height;
+                const backDepth = 0;
+                const backWidthSegments = 1;
+                const backHeightSegments = 1;
+                const backDepthSegments = 1;
+                const backGeometry = new THREE.BoxBufferGeometry(
+                    backWidth, backHeight, backDepth,
+                    backWidthSegments, backHeightSegments, backDepthSegments);
+                const backMaterial = new THREE.MeshBasicMaterial({
+                  color: colors.brightPurple,
+                });
+                const back = new THREE.Mesh(backGeometry, backMaterial);
 
-              scene.add(svgGroup);
-              scene.add(back);
+                scene.add(svgGroup);
+                scene.add(back);
 
-              back.position.z = svg.z;
+                back.position.z = svg.z;
 
-              scene.add(keyholeGroup);
-            } else {
-              scene.add(svgGroup);
-            }
-          },
+                scene.add(keyholeGroup);
+              } else {
+                scene.add(svgGroup);
+              }
+            },
+        );
+      });
+
+      resolve(svgObjects);
+    });
+  }
+
+  prepare3dObj(url, color, materialType) {
+    return new Promise((resolve) => {
+      this.obgjLoader.load(
+          url,
+          (obj) => {
+            obj.traverse((child) => {
+              if (child instanceof THREE.Mesh) {
+                child.material = this.selectMaterial(materialType, color);
+              }
+            });
+            resolve(obj);
+          }
       );
     });
-
-    addObjectFunc(`svgObjects`, svgObjects);
   }
 
-  prepare3dObj(scene, addObjectFunc, url, title, color, materialType, x = 0, y = 0, z = 0, rotX = 0, rotY = 0, rotZ = 0, scaleValue = 1) {
-    this.obgjLoader.load(
-        url,
-        (obj) => {
-          obj.traverse((child) => {
-            if (child instanceof THREE.Mesh) {
-              child.material = this.selectMaterial(materialType, color);
-            }
-          });
-          obj.position.set(x, y, z);
-          obj.rotation.copy(new THREE.Euler(degToRadians(rotX), degToRadians(rotY), degToRadians(rotZ), `XYZ`));
-          addObjectFunc(title, obj);
-          obj.scale.set(scaleValue, scaleValue, scaleValue);
-          scene.add(obj);
-        }
-    );
-  }
+  prepareGltfObj(url) {
+    return new Promise((resolve) => {
+      this.gltfLoader.load(
+          url,
+          (gltf) => {
+            const root = gltf.scene;
 
-  prepareGltfObj(scene, addObjectFunc, url, title, x = 0, y = 0, z = 0, rotX = 0, rotY = 0, rotZ = 0, scaleValue = 1) {
-    this.gltfLoader.load(
-        url,
-        (gltf) => {
-          const root = gltf.scene;
-          root.position.set(x, y, z);
-          root.rotation.copy(new THREE.Euler(degToRadians(rotX), degToRadians(rotY), degToRadians(rotZ), `XYZ`));
-          root.scale.set(scaleValue, scaleValue, scaleValue);
-
-          addObjectFunc(title, root);
-          scene.add(root);
-        }
-    );
+            resolve(root);
+          }
+      );
+    });
   }
 
   prepareLatheRing(innerRadius, outerRadios, height, segments, startingAngel, finalAngel, color, materialType = `default`) {
