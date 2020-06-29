@@ -268,6 +268,8 @@ export default () => {
       this.renderer = new THREE.WebGLRenderer({canvas});
       this.renderer.setClearColor(0x000000, 0.7);
       this.renderer.setSize(initialWidth, initialHeight);
+      this.renderer.shadowMap.enabled = true;
+      this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
       const fov = 2 * Math.atan(initialHeight / (2 * CAMERA_DIST)) * 180 / Math.PI;
       const aspect = initialWidth / initialHeight;
@@ -290,6 +292,21 @@ export default () => {
       await this.prepareSecondStory();
       await this.prepareThirdStory();
       await this.prepareFourthStory();
+
+      const suitGroup = new THREE.Group();
+      const suitcase = await sceneObjects.prepareGltfObj(`img/suitcase.gltf`);
+      const t = 0;
+      const a = 20;
+      const R = 850;
+      const x = 0 + R * Math.cos(t * a);
+      const z = 0 + R * Math.sin(t * a);
+      suitcase.position.set(x, 0, z);
+      suitcase.rotation.copy(new THREE.Euler(degToRadians(0), degToRadians(90), degToRadians(0), `XYZ`));
+      suitGroup.add(suitcase);
+      suitGroup.rotation.copy(new THREE.Euler(degToRadians(0), degToRadians(-115), degToRadians(0), `XYZ`));
+      this.scene.add(suitGroup);
+      this.objects.suitGroup = suitGroup;
+      this.objects.suitcase = suitcase;
 
       this.storiesGroup = new THREE.Group();
 

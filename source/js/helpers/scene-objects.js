@@ -88,15 +88,45 @@ class SceneObjects {
 
     light.add(directionaLight);
 
-    const pointLight1 = new THREE.PointLight(new THREE.Color(`rgb(246,242,255)`), 0.6, 975, 2);
-    pointLight1.position.set(785, 350, 710);
+    const pointLight1 = new THREE.PointLight(new THREE.Color(`rgb(246,242,255)`), 0.6, 0, 2);
+    pointLight1.position.set(0, 500, 1350);
+    pointLight1.castShadow = true;
+    pointLight1.shadow.mapSize.width = 512;
+    pointLight1.shadow.mapSize.height = 512;
+    pointLight1.shadow.camera.near = 0.5;
+    pointLight1.shadow.camera.far = 500;
 
     light.add(pointLight1);
 
-    const pointLight2 = new THREE.PointLight(new THREE.Color(`rgb(245,254,255)`), 0.95, 975, 2);
-    pointLight1.position.set(730, 800, 985);
+    const pointLight2 = new THREE.PointLight(new THREE.Color(`rgb(246,242,255)`), 0.6, 0, 2);
+    pointLight2.position.set(1350, 500, 0);
+    pointLight2.castShadow = true;
+    pointLight2.shadow.mapSize.width = 512;
+    pointLight2.shadow.mapSize.height = 512;
+    pointLight2.shadow.camera.near = 0.5;
+    pointLight2.shadow.camera.far = 500;
 
     light.add(pointLight2);
+
+    const pointLight3 = new THREE.PointLight(new THREE.Color(`rgb(246,242,255)`), 0.6, 0, 2);
+    pointLight3.position.set(-1350, 500, 9);
+    pointLight3.castShadow = true;
+    pointLight3.shadow.mapSize.width = 512;
+    pointLight3.shadow.mapSize.height = 512;
+    pointLight3.shadow.camera.near = 0.5;
+    pointLight3.shadow.camera.far = 500;
+
+    light.add(pointLight3);
+
+    const pointLight4 = new THREE.PointLight(new THREE.Color(`rgb(246,242,255)`), 0.6, 0, 2);
+    pointLight4.position.set(0, 500, -1350);
+    pointLight4.castShadow = true;
+    pointLight4.shadow.mapSize.width = 512;
+    pointLight4.shadow.mapSize.height = 512;
+    pointLight4.shadow.camera.near = 0.5;
+    pointLight4.shadow.camera.far = 500;
+
+    light.add(pointLight4);
 
     const ambientLight = new THREE.AmbientLight(0xffffff);
     light.add(ambientLight);
@@ -137,6 +167,8 @@ class SceneObjects {
 
                   const extrudeGeometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
                   const shapeMesh = new THREE.Mesh(extrudeGeometry, shapeMaterial);
+                  shapeMesh.castShadow = true;
+                  shapeMesh.receiveShadow = true;
                   svgGroup.add(shapeMesh);
                 }
               }
@@ -173,6 +205,8 @@ class SceneObjects {
                   color: colors.brightPurple,
                 });
                 const back = new THREE.Mesh(backGeometry, backMaterial);
+                back.castShadow = true;
+                back.receiveShadow = true;
 
                 scene.add(svgGroup);
                 scene.add(back);
@@ -199,6 +233,8 @@ class SceneObjects {
             obj.traverse((child) => {
               if (child instanceof THREE.Mesh) {
                 child.material = this.selectMaterial(materialType, color);
+                child.castShadow = true;
+                child.receiveShadow = true;
               }
             });
             resolve(obj);
@@ -213,6 +249,8 @@ class SceneObjects {
           url,
           (gltf) => {
             const root = gltf.scene;
+            root.castShadow = true;
+            root.receiveShadow = true;
 
             resolve(root);
           }
@@ -233,6 +271,8 @@ class SceneObjects {
     const material = this.selectMaterial(materialType, color);
 
     const lathe = new THREE.Mesh(geometry, material);
+    lathe.castShadow = true;
+    lathe.receiveShadow = true;
 
     return (lathe);
   }
@@ -281,17 +321,23 @@ class SceneObjects {
     const planetGeometry = new THREE.SphereGeometry(60, 30, 30);
     const planetMaterial = this.prepareSoftMaterial(planetColor);
     const planet = new THREE.Mesh(planetGeometry, planetMaterial);
+    planet.castShadow = true;
+    planet.receiveShadow = true;
 
 
     if (noHolder === false) {
       const smallPlanetGeometry = new THREE.SphereGeometry(10, 30, 30);
       const smallPlanetMaterial = this.prepareSoftMaterial(smallPlanetColor);
       const smallPlanet = new THREE.Mesh(smallPlanetGeometry, smallPlanetMaterial);
+      smallPlanet.castShadow = true;
+      smallPlanet.receiveShadow = true;
       smallPlanet.position.y = 120;
 
       const holderGeometry = new THREE.CylinderBufferGeometry(1, 1, 1000, 10);
       const holderMaterial = this.prepareSoftMaterial(colors.metalGrey);
       const holder = new THREE.Mesh(holderGeometry, holderMaterial);
+      holder.castShadow = true;
+      holder.receiveShadow = true;
       holder.position.y = 560;
 
       saturn.add(holder);
@@ -311,6 +357,8 @@ class SceneObjects {
     const pyramidGeometry = new THREE.CylinderGeometry(0, 176, 280, 4);
     const pyramidMaterial = this.prepareSoftMaterial(colors.blue);
     const pyramid = new THREE.Mesh(pyramidGeometry, pyramidMaterial);
+    pyramid.castShadow = true;
+    pyramid.receiveShadow = true;
 
     return pyramid;
   }
@@ -321,17 +369,25 @@ class SceneObjects {
 
     const rootBottomGeometry = new THREE.CylinderBufferGeometry(16, 16, 120, 20);
     const rootBottom = new THREE.Mesh(rootBottomGeometry, mainLatternMaterial);
+    rootBottom.castShadow = true;
+    rootBottom.receiveShadow = true;
 
     const rootTopGeometry = new THREE.SphereGeometry(16, 40, 30);
     const rootTop = new THREE.Mesh(rootTopGeometry, mainLatternMaterial);
+    rootTop.castShadow = true;
+    rootTop.receiveShadow = true;
     rootTop.position.y = 60;
 
     const middleGeometry = new THREE.CylinderBufferGeometry(7, 7, 230, 20);
     const middle = new THREE.Mesh(middleGeometry, mainLatternMaterial);
+    middle.castShadow = true;
+    middle.receiveShadow = true;
     middle.position.y = 185;
 
     const underLatternGeometry = new THREE.BoxBufferGeometry(37, 4, 37);
     const underLattern = new THREE.Mesh(underLatternGeometry, mainLatternMaterial);
+    underLattern.castShadow = true;
+    underLattern.receiveShadow = true;
     underLattern.position.y = 302;
 
     const lampPyramid = new THREE.Geometry();
@@ -363,6 +419,8 @@ class SceneObjects {
     const lampTransformation = new THREE.Matrix4().makeScale(42, 60, 42);
     const lampMaterial = this.prepareSoftMaterial(colors.lightBlue);
     const lamp = new THREE.Mesh(lampPyramid.applyMatrix4(lampTransformation), lampMaterial);
+    lamp.castShadow = true;
+    lamp.receiveShadow = true;
     lamp.position.y = 304;
 
     const upperLatternPyramid = new THREE.Geometry();
@@ -393,6 +451,8 @@ class SceneObjects {
     upperLatternPyramid.computeFaceNormals();
     const ulampTransformation = new THREE.Matrix4().makeScale(57, 6, 57);
     const upperLattern = new THREE.Mesh(upperLatternPyramid.applyMatrix4(ulampTransformation), mainLatternMaterial);
+    upperLattern.castShadow = true;
+    upperLattern.receiveShadow = true;
     upperLattern.position.y = 364;
 
     lattern.add(rootBottom);
@@ -416,10 +476,14 @@ class SceneObjects {
     const snowMaterial = this.prepareStrongMaterial(colors.snowColor);
     const bottomBall = new THREE.Mesh(snowmanBottomGeometry, snowMaterial);
     const topBall = new THREE.Mesh(snowmanTopGeometry, snowMaterial);
+    topBall.castShadow = true;
+    bottomBall.receiveShadow = true;
 
     const carrotMaterial = this.prepareSoftMaterial(colors.orange);
     const carrotGeometry = new THREE.ConeBufferGeometry(18, 75, 50);
     const carrot = new THREE.Mesh(carrotGeometry, carrotMaterial);
+    carrot.castShadow = true;
+    carrot.receiveShadow = true;
     carrot.rotateZ((-90 * Math.PI) / 180);
     carrot.position.x = 44;
 
@@ -443,6 +507,8 @@ class SceneObjects {
     const material = this.selectMaterial(materialType, color);
 
     const circle = new THREE.Mesh(circleGeometry, material);
+    circle.castShadow = true;
+    circle.receiveShadow = true;
 
     return (circle);
   }
