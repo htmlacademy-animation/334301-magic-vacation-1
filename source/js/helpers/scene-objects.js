@@ -11,6 +11,7 @@ class SceneObjects {
     this.gltfLoader = new GLTFLoader();
 
     this.prepareLight = this.prepareLight.bind(this);
+    this.preparePointLight = this.preparePointLight.bind(this);
     this.prepareSvgs = this.prepareSvgs.bind(this);
     this.prepare3dObj = this.prepare3dObj.bind(this);
     this.prepareGltfObj = this.prepareGltfObj.bind(this);
@@ -76,6 +77,18 @@ class SceneObjects {
     });
   }
 
+  preparePointLight(color, intensity, x, y, z,) {
+    const pointLight = new THREE.PointLight(new THREE.Color(color), intensity, 0, 2);
+    pointLight.position.set(x, y, z);
+    pointLight.castShadow = true;
+    pointLight.shadow.mapSize.width = 512;
+    pointLight.shadow.mapSize.height = 512;
+    pointLight.shadow.camera.near = 0.5;
+    pointLight.shadow.camera.far = 500;
+
+    return pointLight;
+  }
+
   prepareLight(camera) {
     const cameraPosition = camera.position.z;
 
@@ -86,49 +99,9 @@ class SceneObjects {
     const directionalY = Math.pow(Math.abs(Math.pow(Math.pow(Math.pow(2, 3 / 2) / (Math.pow(3, 1 / 2) + cameraPosition), 2) - cameraPosition, 2) - cameraPosition), 1 / 2);
     directionaLight.position.set(0, directionalY, cameraPosition);
 
-    light.add(directionaLight);
-
-    const pointLight1 = new THREE.PointLight(new THREE.Color(`rgb(246,242,255)`), 0.6, 0, 2);
-    pointLight1.position.set(0, 500, 1350);
-    pointLight1.castShadow = true;
-    pointLight1.shadow.mapSize.width = 512;
-    pointLight1.shadow.mapSize.height = 512;
-    pointLight1.shadow.camera.near = 0.5;
-    pointLight1.shadow.camera.far = 500;
-
-    light.add(pointLight1);
-
-    const pointLight2 = new THREE.PointLight(new THREE.Color(`rgb(246,242,255)`), 0.6, 0, 2);
-    pointLight2.position.set(1350, 500, 0);
-    pointLight2.castShadow = true;
-    pointLight2.shadow.mapSize.width = 512;
-    pointLight2.shadow.mapSize.height = 512;
-    pointLight2.shadow.camera.near = 0.5;
-    pointLight2.shadow.camera.far = 500;
-
-    light.add(pointLight2);
-
-    const pointLight3 = new THREE.PointLight(new THREE.Color(`rgb(246,242,255)`), 0.6, 0, 2);
-    pointLight3.position.set(-1350, 500, 9);
-    pointLight3.castShadow = true;
-    pointLight3.shadow.mapSize.width = 512;
-    pointLight3.shadow.mapSize.height = 512;
-    pointLight3.shadow.camera.near = 0.5;
-    pointLight3.shadow.camera.far = 500;
-
-    light.add(pointLight3);
-
-    const pointLight4 = new THREE.PointLight(new THREE.Color(`rgb(246,242,255)`), 0.6, 0, 2);
-    pointLight4.position.set(0, 500, -1350);
-    pointLight4.castShadow = true;
-    pointLight4.shadow.mapSize.width = 512;
-    pointLight4.shadow.mapSize.height = 512;
-    pointLight4.shadow.camera.near = 0.5;
-    pointLight4.shadow.camera.far = 500;
-
-    light.add(pointLight4);
-
     const ambientLight = new THREE.AmbientLight(0xffffff);
+
+    light.add(directionaLight);
     light.add(ambientLight);
 
     return light;
