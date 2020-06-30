@@ -110,9 +110,6 @@ export default () => {
       this.prepareThirdStory = this.prepareThirdStory.bind(this);
       this.prepareFourthStory = this.prepareFourthStory.bind(this);
       this.prepareFloor = this.prepareFloor.bind(this);
-      // this.makeInstance = this.makeInstance.bind(this);
-      this.blurAnimationTick = this.blurAnimationTick.bind(this);
-      this.translateYAnimationTick = this.translateYAnimationTick.bind(this);
     }
 
     prepareFloor(color, material) {
@@ -268,6 +265,8 @@ export default () => {
       this.renderer = new THREE.WebGLRenderer({canvas});
       this.renderer.setClearColor(0x000000, 0.7);
       this.renderer.setSize(initialWidth, initialHeight);
+      this.renderer.shadowMap.enabled = true;
+      this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
       const fov = 2 * Math.atan(initialHeight / (2 * CAMERA_DIST)) * 180 / Math.PI;
       const aspect = initialWidth / initialHeight;
@@ -291,6 +290,21 @@ export default () => {
       await this.prepareThirdStory();
       await this.prepareFourthStory();
 
+      const suitGroup = new THREE.Group();
+      const suitcase = await sceneObjects.prepareGltfObj(`img/suitcase.gltf`);
+      const t = 0;
+      const a = 20;
+      const R = 850;
+      const x = 0 + R * Math.cos(t * a);
+      const z = 0 + R * Math.sin(t * a);
+      suitcase.position.set(x, 0, z);
+      suitcase.rotation.copy(new THREE.Euler(degToRadians(0), degToRadians(90), degToRadians(0), `XYZ`));
+      suitGroup.add(suitcase);
+      suitGroup.rotation.copy(new THREE.Euler(degToRadians(0), degToRadians(-115), degToRadians(0), `XYZ`));
+      this.scene.add(suitGroup);
+      this.objects.suitGroup = suitGroup;
+      this.objects.suitcase = suitcase;
+
       this.storiesGroup = new THREE.Group();
 
       this.storiesGroup.add(this.stories.firstStory.getStory());
@@ -300,199 +314,12 @@ export default () => {
 
       this.scene.add(this.storiesGroup);
 
-      // const loadManager = new THREE.LoadingManager();
-      // const loader = new THREE.TextureLoader(loadManager);
-
-      // const planeWidth = PLANE_WIDTH;
-      // const planeHeight = PLANE_HEIGHT;
-      // const planeGeometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
-
-      // const planeMaterials = scenes.map((scene, index) => {
-      //   return new THREE.RawShaderMaterial(
-      //       {
-      //         uniforms: {
-      //           map: {
-      //             value: loader.load(scene.src)
-      //           },
-      //           uSlideIndex: {
-      //             type: `i`,
-      //             value: index,
-      //           },
-      //           uHueRotation: {
-      //             type: `f`,
-      //             value: scene.hueRotation,
-      //           },
-      //           uResolution: {
-      //             type: `v2`,
-      //             value: new THREE.Vector2(initialWidth / (window.devicePixelRatio * 2), initialHeight),
-      //           },
-      //           uBlurProgress: {
-      //             type: `f`,
-      //             value: 0.0,
-      //           },
-      //           uTranslateYProgress: {
-      //             type: `f`,
-      //             value: 0.0,
-      //           },
-      //           uAmplitudeModifier: {
-      //             type: `f`,
-      //             value: 0.0,
-      //           },
-      //           uTime: {
-      //             type: `f`,
-      //             value: 0.0,
-      //           }
-      //         },
-      //         vertexShader: `
-      //         uniform mat4 projectionMatrix;
-      //         uniform mat4 modelMatrix;
-      //         uniform mat4 viewMatrix;
-
-      //         attribute vec3 position;
-      //         attribute vec3 normal;
-      //         attribute vec2 uv;
-
-      //         varying vec2 vUv;
-
-      //         void main() {
-      //           vUv = uv;
-
-      //           gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4( position, 1.0 );
-      //         }`,
-
-      //         fragmentShader: `
-      //         #define PI 3.14159265359
-
-      //         precision mediump float;
-
-      //         uniform sampler2D map;
-      //         uniform float uHueRotation;
-      //         uniform vec2 uResolution;
-      //         uniform int uSlideIndex;
-      //         uniform float uBlurProgress;
-      //         uniform float uTranslateYProgress;
-      //         uniform float uTime;
-      //         uniform float uAmplitudeModifier;
-
-      //         varying vec2 vUv;
-
-      //         float bubble(in vec2 st, in float radius, in float offsetX, in float offsetY, in float xAmplitude, in int bubbleIndex) {
-      //           vec2 dist = st - vec2(0. + offsetX + xAmplitude * float(bubbleIndex + 1) * uAmplitudeModifier * sin(uTime * 5.0), 0. + offsetY * uTranslateYProgress);
-
-      //           return 1. - smoothstep(
-      //             radius - (radius * 1.),
-      //             radius+(radius * 1.),
-      //             dot(dist, dist) * 4.
-      //           );
-      //         }
-
-      //         vec4 bubbleVisual(in float bubble, in vec2 st, in float offsetX, in float offsetY, in float xAmplitude, in int bubbleIndex) {
-      //           if (bubble > .0) {
-      //             float border;
-      //             float shine;
-
-      //             vec2 dist = st - vec2(0. + offsetX + xAmplitude * float(bubbleIndex + 1) * uAmplitudeModifier * sin(uTime * 5.0), 0. + offsetY * uTranslateYProgress);
-      //             vec2 shift = -1.0 * normalize(vec2(bubble, bubble)) * 0.005;
-
-      //             if (bubble < 0.0005) {
-      //               border = 1.0;
-      //             }
-
-      //             if ( bubble > 0.49 && bubble < 0.50 && dist.x > -0.11 && dist.x < -0.03 && dist.y > 0. && dist.y < 0.3) {
-      //               shine = 1.0;
-      //             }
-
-      //             return vec4(shift, border, shine);
-      //           }
-      //         }
-
-      //         void main() {
-      //           vec4 texel;
-      //           vec4 visual;
-      //           vec4 border;
-      //           vec4 shine;
-      //           vec2 shift;
-
-      //           vec2 st = gl_FragCoord.xy/vec2(uResolution.x, uResolution.x);
-
-      //           float aDeg = uHueRotation + (360.0 - uHueRotation) * uBlurProgress;
-      //           float aRad = radians(aDeg);
-
-      //           float cos = cos(aRad);
-      //           float sin = sin(aRad);
-      //           float lumR = 0.213;
-      //           float lumG = 0.715;
-      //           float lumB = 0.072;
-
-      //           mat4 colorMatrix = mat4(
-      //             lumR + cos * (1.0 - lumR) + sin * (-lumR), lumG + cos * (-lumG) + sin * (-lumG), lumB + cos * (-lumB) + sin * (1.0 - lumB), 0,
-      //             lumR + cos * (-lumR) + sin * (0.143), lumG + cos * (1.0 - lumG) + sin * (0.140), lumB + cos * (-lumB) + sin * (-0.283), 0,
-      //             lumR + cos * (-lumR) + sin * (-(1.0 - lumR)), lumG + cos * (-lumG) + sin * (lumG), lumB + cos * (1.0 - lumB) + sin * (lumB), 0,
-      //             0, 0, 0, 1.0
-      //           );
-
-      //           texel = texture2D(map, vUv);
-
-      //           if (uSlideIndex == 1) {
-      //             mat4 bubblesMatrix = mat4(
-      //               0.04, 1.5, 4.2, 0.1,
-      //               0.08, 2.0, 6.7, 0.15,
-      //               0.02, 2.6, 2.4, 0.2,
-      //               0, 0, 0, 0
-      //             );
-
-      //             for(int i=0; i < int(3); i++) {
-      //               float currentBubble = bubble(st, bubblesMatrix[i].r, bubblesMatrix[i].g, bubblesMatrix[i].b, bubblesMatrix[i].a, i);
-
-      //               if (currentBubble > .0) {
-      //                 visual = bubbleVisual(currentBubble, st, bubblesMatrix[i].g, bubblesMatrix[i].b, bubblesMatrix[i].a, i);
-      //                 shift =  vec2(visual.r, visual.g);
-      //                 border = vec4(visual.b);
-      //                 shine = vec4(visual.a);
-      //               }
-      //             }
-
-      //             texel = texture2D(map, vUv + shift) + border + shine;
-      //           }
-
-      //           gl_FragColor = texel * colorMatrix;
-      //         }`
-      //       }
-      //   );
-      // });
-
-      // loadManager.onLoad = () => {
-      //   this.objects.planes = [];
-      //   planeMaterials.forEach((material, index) => {
-      //     this.makeInstance(planeGeometry, material, index);
-      //   });
-      // };
-
       canvasFrame.addRender(this.render);
       window.addEventListener(`resize`, this.resizeRenderer);
     }
 
     render() {
       this.controls.update();
-      // time *= 0.001;
-
-      // if (this.objects.planes && this.objects.planes.length > 0) {
-      //   if (this.toggleBlurAnimation === true) {
-      //     this.toggleBlurAnimation = false;
-
-      //     animate.easing(this.blurAnimationTick(this.objects.planes[1].material.uniforms.uBlurProgress.value, 1 - this.objects.planes[1].material.uniforms.uBlurProgress.value), 1000, bezierEasing(0.00, 0.0, 0.58, 1.0));
-      //   }
-
-      //   if (this.bubbleAnimation === true) {
-      //     this.bubbleAnimation = false;
-
-      //     animate.easing(this.translateYAnimationTick(-0.5, 2.0), 16000, bezierEasing(0.00, 0.0, 0.58, 1.0));
-      //     animate.easing(this.translateAmlitudeModifierTick(1.5, 0.0), 6000, bezierEasing(0.00, 0.0, 0.58, 1.0));
-      //   }
-
-      //   this.objects.planes[1].material.uniforms.uTime.value = time;
-      //   this.objects.planes[1].material.uniformsNeedUpdate = true;
-      // }
 
       this.renderer.render(this.scene, this.camera);
     }
@@ -507,53 +334,8 @@ export default () => {
         this.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
         this.camera.fov = 2 * Math.atan(window.innerHeight / (2 * CAMERA_DIST)) * 180 / Math.PI;
 
-        // if (this.objects.planes && this.objects.planes.length > 0) {
-        //   this.objects.planes.forEach((plane, index) => {
-        //     if (index === 1) {
-        //       plane.material.uniforms.uResolution.value = new THREE.Vector2(width / (window.devicePixelRatio * 2), height);
-        //       plane.material.uniformsNeedUpdate = true;
-        //     }
-        //   });
-        // }
-
         this.camera.updateProjectionMatrix();
       }
-    }
-
-    // makeInstance(geometry, material, x) {
-    //   const instanceGroup = new THREE.Group();
-
-    //   const plane = new THREE.Mesh(geometry, material);
-    //   this.objects.planes.push(plane);
-
-    //   instanceGroup.add(plane);
-    //   instanceGroup.position.x = PLANE_WIDTH * x;
-
-    //   this.scene.add(instanceGroup);
-    // }
-
-    blurAnimationTick(from, to) {
-      return (progress) => {
-        this.objects.planes[1].material.uniforms.uBlurProgress.value = from + progress * Math.sign(to - from) * Math.abs(to - from);
-
-        if (progress === 1 && this.blurCounter < 3) {
-          this.blurCounter = this.blurCounter + 1;
-
-          this.toggleBlurAnimation = true;
-        }
-      };
-    }
-
-    translateYAnimationTick(from, to) {
-      return (progress) => {
-        this.objects.planes[1].material.uniforms.uTranslateYProgress.value = from + progress * Math.sign(to - from) * Math.abs(to - from);
-      };
-    }
-
-    translateAmlitudeModifierTick(from, to) {
-      return (progress) => {
-        this.objects.planes[1].material.uniforms.uAmplitudeModifier.value = from + progress * Math.sign(to - from) * Math.abs(to - from);
-      };
     }
   }
 
@@ -573,22 +355,6 @@ export default () => {
           enabled: true
         },
         on: {
-          slideChange: () => {
-            storyBackground.blurCounter = 0;
-            storyBackground.toggleBlurAnimation = false;
-            storyBackground.bubbleAnimation = false;
-            if (storySlider.activeIndex === 0 || storySlider.activeIndex === 1) {
-              storyBackground.camera.position.x = 2048 * 0;
-            } else if (storySlider.activeIndex === 2 || storySlider.activeIndex === 3) {
-              storyBackground.camera.position.x = 2048 * 1;
-              storyBackground.toggleBlurAnimation = true;
-              storyBackground.bubbleAnimation = true;
-            } else if (storySlider.activeIndex === 4 || storySlider.activeIndex === 5) {
-              storyBackground.camera.position.x = 2048 * 2;
-            } else if (storySlider.activeIndex === 6 || storySlider.activeIndex === 7) {
-              storyBackground.camera.position.x = 2048 * 3;
-            }
-          },
           resize: () => {
             storySlider.update();
           }
@@ -612,22 +378,6 @@ export default () => {
           enabled: true
         },
         on: {
-          slideChange: () => {
-            storyBackground.blurCounter = 0;
-            storyBackground.toggleBlurAnimation = false;
-            storyBackground.bubbleAnimation = false;
-            if (storySlider.activeIndex === 0) {
-              storyBackground.camera.position.x = 2048 * 0;
-            } else if (storySlider.activeIndex === 2) {
-              storyBackground.camera.position.x = 2048 * 1;
-              storyBackground.toggleBlurAnimation = true;
-              storyBackground.bubbleAnimation = true;
-            } else if (storySlider.activeIndex === 4) {
-              storyBackground.camera.position.x = 2048 * 2;
-            } else if (storySlider.activeIndex === 6) {
-              storyBackground.camera.position.x = 2048 * 3;
-            }
-          },
           resize: () => {
             storySlider.update();
           }
